@@ -101,7 +101,7 @@ export default function HomePage() {
   return (
     <main className="max-w-4xl mx-auto px-4 py-12">
       <h1 className="text-4xl font-bold mb-10 text-center text-blue-800">
-        🌟 Techvaganza Event Registration
+        🌟 Range-e-Chinar Event Registration
       </h1>
 
       {/* Personal Info */}
