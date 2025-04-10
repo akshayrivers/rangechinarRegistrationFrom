@@ -6,7 +6,8 @@ export default function SuccessPage() {
       </h1>
       <p className="text-lg mb-2">Thank you for registering.</p>
       <p className="text-md text-gray-700 mb-6">
-        We’ve received your details and payment. See you at the event!
+        After we process your transaction details, you will receive an email
+        with your ticket attached
       </p>
 
       <a href="/" className="inline-block mt-4 text-blue-600 underline">

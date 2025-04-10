@@ -115,7 +115,7 @@ export default function PaymentPage() {
 
       <input
         type="text"
-        placeholder="Enter Transaction ID"
+        placeholder="Enter UPI Transaction ID"
         value={txnId}
         onChange={(e) => setTxnId(e.target.value)}
         className="w-full border p-2 mb-4"
