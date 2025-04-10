@@ -32,7 +32,7 @@ export default function PaymentPage() {
       setData(parsed);
 
       const fee = parsed.selected_events_fee ?? 0;
-      const upiLink = `upi://pay?pa=${upiId}&pn=Techvaganza&am=${fee}&cu=INR`;
+      const upiLink = `upi://pay?pa=${upiId}&pn=Rang-e-chinar&am=${fee}&cu=INR`;
 
       fetch(
         `https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(
