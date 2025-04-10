@@ -10,7 +10,6 @@ export async function POST(req: Request) {
         phone,
         organization,
         state,
-        band_id,
         txn_id,
         selected_events,
     } = await req.json()
@@ -29,19 +28,8 @@ export async function POST(req: Request) {
         )
     }
 
-    // ✅ Check for existing Band ID
-    const { data: existingBandID } = await supabase
-        .from('participants')
-        .select('id')
-        .eq('band_id', band_id)
-        .maybeSingle()
 
-    if (existingBandID) {
-        return NextResponse.json(
-            { error: 'This Band ID is already registered.' },
-            { status: 400 }
-        )
-    }
+
 
     // ✅ Insert participant including UID
     const { data: participant, error: insertError } = await supabase
@@ -55,7 +43,6 @@ export async function POST(req: Request) {
                 phone,
                 organization,
                 state,
-                band_id,
                 txn_id,
             },
         ])
@@ -87,7 +74,6 @@ export async function POST(req: Request) {
         success: true,
         message: 'Registration successful',
         details: {
-            band_id,
             name: `${first_name} ${last_name}`,
             events_registered: selected_events.length,
         },

@@ -4,14 +4,13 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 interface RegistrationData {
-  uid: string;
+  uid?: string;
   first_name: string;
   last_name: string;
   email: string;
   phone: string;
   organization: string;
   state: string;
-  band_id: string;
   selected_events: string[];
   selected_events_fee?: number;
 }
@@ -23,7 +22,7 @@ export default function PaymentPage() {
   const [qrCode, setQrCode] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const upiId = "somr63082@oksbi";
+  const upiId = "jkbmerc00173818@jkb";
 
   useEffect(() => {
     const stored = localStorage.getItem("registration_data");
@@ -31,8 +30,7 @@ export default function PaymentPage() {
       const parsed: RegistrationData = JSON.parse(stored);
       setData(parsed);
 
-      const fee =
-        parsed.selected_events_fee || parsed.selected_events.length * 50;
+      const fee = parsed.selected_events_fee ?? 0;
 
       const upiLink = `upi://pay?pa=${upiId}&pn=Techvaganza&am=${fee}&cu=INR`;
       fetch(
@@ -87,14 +85,12 @@ export default function PaymentPage() {
         <p>
           <strong>Phone:</strong> {data.phone}
         </p>
-        <p>
-          <strong>Band ID:</strong> {data.band_id}
-        </p>
+
         <p>
           <strong>Selected Events:</strong> {data.selected_events.length}
         </p>
         <p>
-          <strong>Total Fee:</strong> ₹{data.selected_events.length * 50}
+          <strong>Total Fee:</strong> ₹{data.selected_events_fee ?? 0}
         </p>
       </div>
 

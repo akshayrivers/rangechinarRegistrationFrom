@@ -15,7 +15,6 @@ const registrationSchema = z.object({
     .transform((val) => Number(val)),
   organization: z.string().min(1, "Organization is required"),
   state: z.string().min(1, "State is required"),
-  band_id: z.string().min(1, "Band ID is required"),
   selected_events: z
     .array(z.string())
     .min(1, "At least one event must be selected"),
@@ -45,7 +44,6 @@ export default function HomePage() {
     phone: "",
     organization: "",
     state: "",
-    band_id: "",
     selected_events: [],
   });
 
@@ -81,8 +79,15 @@ export default function HomePage() {
       return;
     }
 
-    const transformedData = result.data;
-    console.log("Submitting transformed form:", transformedData);
+    const selectedEventObjs = events.filter((event) =>
+      result.data.selected_events.includes(String(event.id))
+    );
+    const totalFee = selectedEventObjs.reduce((sum, ev) => sum + ev.fee, 0);
+
+    const transformedData = {
+      ...result.data,
+      selected_events_fee: totalFee,
+    };
 
     localStorage.setItem("registration_data", JSON.stringify(transformedData));
     router.push("/payment");
