@@ -21,6 +21,7 @@ export default function PaymentPage() {
   const [txnId, setTxnId] = useState("");
   const [qrCode, setQrCode] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [loadingQr, setLoadingQr] = useState(true); // New loading state
 
   const upiId = "jkbmerc00173818@jkb";
 
@@ -31,15 +32,18 @@ export default function PaymentPage() {
       setData(parsed);
 
       const fee = parsed.selected_events_fee ?? 0;
-
       const upiLink = `upi://pay?pa=${upiId}&pn=Techvaganza&am=${fee}&cu=INR`;
+
       fetch(
         `https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(
           upiLink
         )}&size=200x200`
       )
         .then((res) => res.url)
-        .then(setQrCode);
+        .then((url) => {
+          setQrCode(url);
+          setLoadingQr(false); // QR code finished loading
+        });
     }
   }, []);
 
@@ -85,7 +89,6 @@ export default function PaymentPage() {
         <p>
           <strong>Phone:</strong> {data.phone}
         </p>
-
         <p>
           <strong>Selected Events:</strong> {data.selected_events.length}
         </p>
@@ -97,7 +100,17 @@ export default function PaymentPage() {
       <div className="flex flex-col items-center mb-6">
         <h3 className="text-md mb-2 font-medium">Pay via UPI to:</h3>
         <p className="mb-2 text-sm">{upiId}</p>
-        {qrCode && <img src={qrCode} alt="UPI QR Code" className="w-40 h-40" />}
+        {loadingQr ? (
+          <p className="text-sm text-gray-500">Generating QR code...</p>
+        ) : (
+          qrCode && (
+            <img
+              src={qrCode}
+              alt="UPI QR Code"
+              className="w-40 h-40 border rounded"
+            />
+          )
+        )}
       </div>
 
       <input
@@ -110,7 +123,7 @@ export default function PaymentPage() {
 
       <button
         onClick={handleSubmit}
-        disabled={isSubmitting}
+        disabled={isSubmitting || loadingQr}
         className="bg-green-600 text-white w-full py-2 rounded disabled:opacity-50"
       >
         {isSubmitting ? "Submitting..." : "Confirm Registration"}
