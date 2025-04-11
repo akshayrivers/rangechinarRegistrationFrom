@@ -14,6 +14,7 @@ export async function POST(req: Request) {
         is_nit_student,
         txn_id,
         selected_events,
+        amount,
     } = await req.json()
 
     // ✅ Check if UID/email already registered
@@ -44,6 +45,7 @@ export async function POST(req: Request) {
                 gender,
                 nit: is_nit_student, // Renaming is_nit_student to nit as required
                 txn_id,
+                amount
             },
         ])
         .select()

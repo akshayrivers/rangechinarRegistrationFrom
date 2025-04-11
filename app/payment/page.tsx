@@ -18,6 +18,7 @@ interface RegistrationData {
   total_fee: number;
   entry_fee: number;
   events_fee: number;
+  
 }
 
 export default function PaymentPage() {
@@ -84,6 +85,7 @@ export default function PaymentPage() {
         body: JSON.stringify({
           ...data,
           txn_id: txnId,
+          amount:data.total_fee
         }),
       });
       
