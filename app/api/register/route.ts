@@ -10,6 +10,8 @@ export async function POST(req: Request) {
         phone,
         organization,
         state,
+        gender,
+        is_nit_student,
         txn_id,
         selected_events,
     } = await req.json()
@@ -28,21 +30,19 @@ export async function POST(req: Request) {
         )
     }
 
-
-
-
     // ✅ Insert participant including UID
     const { data: participant, error: insertError } = await supabase
         .from('participants')
         .insert([
             {
-
                 first_name,
                 last_name,
                 email,
                 phone,
                 organization,
                 state,
+                gender,
+                nit: is_nit_student, // Renaming is_nit_student to nit as required
                 txn_id,
             },
         ])

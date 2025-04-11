@@ -15,9 +15,15 @@ const registrationSchema = z.object({
     .transform((val) => Number(val)),
   organization: z.string().min(1, "Organization is required"),
   state: z.string().min(1, "State is required"),
+  gender: z.string().min(1, "Gender is required"),
+  is_nit_student: z.boolean(),
+  participant_category: z.string().optional(),
   selected_events: z
     .array(z.string())
     .min(1, "At least one event must be selected"),
+  agree_to_rules: z.boolean().refine(val => val === true, {
+    message: "You must agree to the event rules"
+  })
 });
 
 type RegistrationData = z.input<typeof registrationSchema>;
@@ -29,13 +35,27 @@ interface Event {
   sub_category: string;
   fee: number;
   category: string;
+  day: string; // "1", "2", or "1 2"
 }
+
+// Fee categories
+const participantCategories = [
+  { id: "school", name: "School Student (till Class 10)", fee: 20 },
+  { id: "college", name: "College Student (Including Class 11 & 12)", fee: 29 },
+  { id: "alumni", name: "College Alumni (with valid proof)", fee: 499 },
+  { id: "others", name: "Others (With Any govt ID)", fee: 999 }
+];
 
 export default function HomePage() {
   const router = useRouter();
   const [events, setEvents] = useState<Event[]>([]);
   const [filteredEvents, setFilteredEvents] = useState<Event[]>([]);
   const [categoryFilter, setCategoryFilter] = useState("All");
+  const [activeDay, setActiveDay] = useState("1"); // Default to day 1
+  const [showRules, setShowRules] = useState(false);
+  const [totalFee, setTotalFee] = useState(0);
+  const [entryFee, setEntryFee] = useState(0);
+  const [eventsFee, setEventsFee] = useState(0);
 
   const [form, setForm] = useState<RegistrationData>({
     first_name: "",
@@ -44,7 +64,11 @@ export default function HomePage() {
     phone: "",
     organization: "",
     state: "",
+    gender: "",
+    is_nit_student: false,
+    participant_category: "college", // Default to college student
     selected_events: [],
+    agree_to_rules: false
   });
 
   useEffect(() => {
@@ -52,11 +76,32 @@ export default function HomePage() {
       .then((res) => res.json())
       .then((data: Event[]) => {
         setEvents(data);
-        setFilteredEvents(data);
+        setFilteredEvents(data.filter(event => event.day.includes(activeDay)));
       });
   }, []);
 
-  const handleInput = (key: keyof RegistrationData, value: string) => {
+  // Calculate fees whenever relevant form fields change
+  useEffect(() => {
+    // Calculate events fee
+    const selectedEventObjs = events.filter((event) =>
+      form.selected_events.includes(String(event.id))
+    );
+    const newEventsFee = selectedEventObjs.reduce((sum, ev) => sum + ev.fee, 0);
+    setEventsFee(newEventsFee);
+    
+    // Calculate entry fee
+    let newEntryFee = 0;
+    if (!form.is_nit_student) {
+      const selectedCategory = participantCategories.find(cat => cat.id === form.participant_category);
+      newEntryFee = selectedCategory ? selectedCategory.fee : 29; // Default to college student fee
+    }
+    setEntryFee(newEntryFee);
+    
+    // Calculate total
+    setTotalFee(newEventsFee + newEntryFee);
+  }, [form.selected_events, form.is_nit_student, form.participant_category, events]);
+
+  const handleInput = (key: keyof RegistrationData, value: string | boolean) => {
     setForm((prev) => ({ ...prev, [key]: value }));
   };
 
@@ -70,6 +115,15 @@ export default function HomePage() {
     });
   };
 
+  const handleRulesClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setShowRules(true);
+  };
+
+  const handleCloseRules = () => {
+    setShowRules(false);
+  };
+
   const handleSubmit = () => {
     const result = registrationSchema.safeParse(form);
 
@@ -79,14 +133,11 @@ export default function HomePage() {
       return;
     }
 
-    const selectedEventObjs = events.filter((event) =>
-      result.data.selected_events.includes(String(event.id))
-    );
-    const totalFee = selectedEventObjs.reduce((sum, ev) => sum + ev.fee, 0);
-
     const transformedData = {
       ...result.data,
-      selected_events_fee: totalFee,
+      total_fee: totalFee,
+      entry_fee: entryFee,
+      events_fee: eventsFee
     };
 
     localStorage.setItem("registration_data", JSON.stringify(transformedData));
@@ -95,106 +146,420 @@ export default function HomePage() {
 
   const uniqueCategories = ["All", ...new Set(events.map((e) => e.category))];
 
+  // Filter events based on selected day and category
   useEffect(() => {
     setFilteredEvents(
-      categoryFilter === "All"
-        ? events
-        : events.filter((e) => e.category === categoryFilter)
+      events
+        .filter(e => e.day.includes(activeDay))
+        .filter(e => categoryFilter === "All" ? true : e.category === categoryFilter)
     );
-  }, [categoryFilter, events]);
+  }, [categoryFilter, events, activeDay]);
+
+  // Switch between day tabs
+  const switchDay = (day: string) => {
+    setActiveDay(day);
+    setCategoryFilter("All"); // Reset category filter when switching days
+  };
 
   return (
-    <main className="max-w-4xl mx-auto px-4 py-12">
-      <h1 className="text-4xl font-bold mb-10 text-center text-blue-800">
-        🌟 Range-e-Chinar Event Registration
+    <main className="max-w-5xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
+      <h1 className="text-3xl sm:text-4xl font-bold mb-6 sm:mb-10 text-center text-indigo-900">
+        🌟 Rang-e-Chinar Event Registration
       </h1>
 
+     
+
       {/* Personal Info */}
-      <section className="space-y-6 bg-white p-6 rounded-2xl shadow-md border border-gray-200">
-        <h2 className="text-xl font-semibold text-gray-700">
-          👤 Personal Information
+      <section className="space-y-6 bg-white p-4 sm:p-6 rounded-2xl shadow-lg border border-indigo-100">
+        <h2 className="text-xl font-semibold text-indigo-800 flex items-center">
+          <span className="mr-2">👤</span> Personal Information
         </h2>
 
-        {(Object.keys(form) as (keyof RegistrationData)[])
-          .filter((key) => key !== "selected_events")
-          .map((key) => (
-            <div key={key}>
-              <label className="block text-sm font-medium text-gray-600 mb-1">
-                {key.replace("_", " ").toUpperCase()}
-              </label>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              First Name
+            </label>
+            <input
+              type="text"
+              value={form.first_name}
+              onChange={(e) => handleInput("first_name", e.target.value)}
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-transparent transition-all"
+              placeholder="Enter first name"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Last Name
+            </label>
+            <input
+              type="text"
+              value={form.last_name}
+              onChange={(e) => handleInput("last_name", e.target.value)}
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-transparent transition-all"
+              placeholder="Enter last name"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Email
+            </label>
+            <input
+              type="email"
+              value={form.email}
+              onChange={(e) => handleInput("email", e.target.value)}
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-transparent transition-all"
+              placeholder="example@email.com"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Phone
+            </label>
+            <input
+              type="tel"
+              value={form.phone as string}
+              onChange={(e) => handleInput("phone", e.target.value)}
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-transparent transition-all"
+              placeholder="10-digit number"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Organization
+            </label>
+            <input
+              type="text"
+              value={form.organization}
+              onChange={(e) => handleInput("organization", e.target.value)}
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-transparent transition-all"
+              placeholder="Your organization/college"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              State
+            </label>
+            <input
+              type="text"
+              value={form.state}
+              onChange={(e) => handleInput("state", e.target.value)}
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-transparent transition-all"
+              placeholder="Your state"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Gender
+            </label>
+            <select
+              value={form.gender}
+              onChange={(e) => handleInput("gender", e.target.value)}
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-transparent transition-all"
+            >
+              <option value="">Select Gender</option>
+              <option value="male">Male</option>
+              <option value="female">Female</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+
+          <div className="flex flex-col sm:flex-row items-start sm:items-center">
+            <div className="flex items-center mr-6 mb-2 sm:mb-0">
               <input
-                type={key === "phone" ? "tel" : "text"}
-                value={form[key] as string}
-                onChange={(e) => handleInput(key, e.target.value)}
-                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring focus:ring-blue-200"
+                type="checkbox"
+                id="is_nit_student"
+                checked={form.is_nit_student}
+                onChange={(e) => handleInput("is_nit_student", e.target.checked)}
+                className="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500 border-gray-300 mr-2"
               />
+              <label htmlFor="is_nit_student" className="text-sm font-medium text-gray-700">
+                NIT Srinagar Student 
+              </label>
             </div>
-          ))}
+            
+            {/* Participant Category Dropdown - Only show when not an NIT student */}
+            {!form.is_nit_student && (
+              <div className="w-full">
+                <select
+                  value={form.participant_category}
+                  onChange={(e) => handleInput("participant_category", e.target.value)}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-transparent transition-all text-sm"
+                >
+                  {participantCategories.map((category) => (
+                    <option key={category.id} value={category.id}>
+                      {category.name} - ₹{category.fee}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Entry Fee Explanation */}
+        {!form.is_nit_student && (
+          <div className="mt-2 bg-indigo-50 p-3 rounded-lg text-sm text-gray-700">
+            <p className="font-medium text-indigo-700 mb-1">Entry Fee Categories:</p>
+            <ul className="list-disc pl-5 space-y-1">
+              {participantCategories.map((category) => (
+                <li key={category.id}>
+                  {category.name} – ₹{category.fee}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
       </section>
 
       {/* Event Selection */}
-      <section className="mt-12">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-semibold text-gray-700">
-            🎯 Select Events
-          </h2>
-          <select
-            value={categoryFilter}
-            onChange={(e) => setCategoryFilter(e.target.value)}
-            className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring focus:ring-blue-200"
-          >
-            {uniqueCategories.map((cat) => (
-              <option key={cat}>{cat}</option>
-            ))}
-          </select>
-        </div>
+      <section className="mt-8 sm:mt-12">
+        <div className="bg-white p-4 sm:p-6 rounded-2xl shadow-lg border border-indigo-100">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
+            <h2 className="text-xl font-semibold text-indigo-800 flex items-center mb-2 sm:mb-0">
+              <span className="mr-2">🎯</span> Select Events
+            </h2>
+            <select
+              value={categoryFilter}
+              onChange={(e) => setCategoryFilter(e.target.value)}
+              className="w-full sm:w-auto border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-transparent transition-all"
+            >
+              {uniqueCategories.map((cat) => (
+                <option key={cat}>{cat}</option>
+              ))}
+            </select>
+          </div>
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredEvents.map((event) => {
-            const eventId = String(event.id);
-            return (
-              <label
-                key={eventId}
-                className={`border rounded-xl p-5 cursor-pointer transition-all duration-200 shadow-md hover:shadow-lg ${
-                  form.selected_events.includes(eventId)
-                    ? "bg-blue-50 border-blue-500 ring-2 ring-blue-300"
-                    : "bg-white border-gray-200"
-                }`}
-              >
-                <div className="flex items-start gap-3">
-                  <input
-                    type="checkbox"
-                    className="mt-1"
-                    checked={form.selected_events.includes(eventId)}
-                    onChange={() => toggleEvent(event.id)}
-                  />
-                  <div>
-                    <h3 className="font-bold text-lg text-gray-800">
-                      {event.name}
-                    </h3>
-                    <p className="text-sm text-gray-600 mb-1">
-                      {event.description}
-                    </p>
-                    <p className="text-sm text-gray-500">
-                      Sub Category: {event.sub_category}
-                    </p>
-                    <p className="text-sm text-gray-500">Fee: ₹{event.fee}</p>
+          {/* Day Tabs */}
+          <div className="flex border-b border-gray-200 mb-6">
+            <button
+              onClick={() => switchDay("1")}
+              className={`py-2 px-4 font-medium transition-all ${
+                activeDay === "1"
+                  ? "border-b-2 border-indigo-500 text-indigo-700"
+                  : "text-gray-500 hover:text-gray-700"
+              }`}
+            >
+              Day 1
+            </button>
+            <button
+              onClick={() => switchDay("2")}
+              className={`py-2 px-4 font-medium transition-all ${
+                activeDay === "2"
+                  ? "border-b-2 border-indigo-500 text-indigo-700"
+                  : "text-gray-500 hover:text-gray-700"
+              }`}
+            >
+              Day 2
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+            {filteredEvents.map((event) => {
+              const eventId = String(event.id);
+              return (
+                <label
+                  key={eventId}
+                  className={`border rounded-xl p-4 cursor-pointer transition-all duration-200 hover:shadow-md ${
+                    form.selected_events.includes(eventId)
+                      ? "bg-indigo-50 border-indigo-300 ring-2 ring-indigo-200"
+                      : "bg-white border-gray-200 hover:border-indigo-200"
+                  }`}
+                >
+                  <div className="flex items-start gap-3">
+                    <input
+                      type="checkbox"
+                      className="mt-1 w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500 border-gray-300"
+                      checked={form.selected_events.includes(eventId)}
+                      onChange={() => toggleEvent(event.id)}
+                    />
+                    <div>
+                      <h3 className="font-bold text-lg text-indigo-900">
+                        {event.name}
+                      </h3>
+                      <p className="text-sm text-gray-600 mb-1">
+                        {event.description}
+                      </p>
+                      <p className="text-sm text-gray-500">
+                        <span className="font-medium">Category:</span> {event.sub_category}
+                      </p>
+                      <p className="text-sm font-medium text-indigo-600">Fee: ₹{event.fee}</p>
+                    </div>
                   </div>
-                </div>
-              </label>
-            );
-          })}
+                </label>
+              );
+            })}
+          </div>
         </div>
       </section>
 
-      <div className="text-center mt-10">
-        <button
-          onClick={handleSubmit}
-          className="bg-green-600 hover:bg-green-700 text-white text-lg px-6 py-3 rounded-lg shadow-lg"
-        >
-          ✅ Proceed to Payment
-        </button>
-      </div>
+      {/* Rules Agreement */}
+      <section className="mt-6 sm:mt-8 p-4 sm:p-6 bg-white rounded-2xl shadow-lg border border-indigo-100">
+        <div className="flex items-start gap-3">
+          <input
+            type="checkbox"
+            id="agree_to_rules"
+            className="mt-1 w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500 border-gray-300"
+            checked={form.agree_to_rules}
+            onChange={(e) => handleInput("agree_to_rules", e.target.checked)}
+          />
+          <div>
+            <label htmlFor="agree_to_rules" className="font-medium text-gray-700">
+              I agree to the event rules and guidelines
+            </label>
+            <p className="text-sm text-gray-500 mt-1">
+              By checking this box, you confirm that you have read and agree to follow all 
+              <a 
+                href="#" 
+                onClick={handleRulesClick}
+                className="text-indigo-600 underline ml-1 hover:text-indigo-800 transition-colors"
+              >
+                event rules and regulations
+              </a>
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Final Fee Summary Card */}
+      <section className="mt-6 sm:mt-8 p-4 sm:p-6 bg-gradient-to-r from-indigo-600 to-purple-700 rounded-2xl shadow-lg text-white">
+  <h2 className="text-xl font-semibold mb-4">Payment Summary</h2>
+  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
+    <div className="bg-white bg-opacity-90 rounded-lg p-3 text-gray-900">
+      <p className="text-sm text-gray-700">Events Fee</p>
+      <p className="text-2xl font-bold">₹{eventsFee}</p>
+    </div>
+    <div className="bg-white bg-opacity-90 rounded-lg p-3 text-gray-900">
+      <p className="text-sm text-gray-700">Entry Fee</p>
+      <p className="text-2xl font-bold">₹{entryFee}</p>
+    </div>
+    <div className="bg-white bg-opacity-90 rounded-lg p-3 text-gray-900">
+      <p className="text-sm text-gray-700">Total Fee</p>
+      <p className="text-2xl font-bold">₹{totalFee}</p>
+    </div>
+  </div>
+
+  <div className="text-center mt-4">
+    <button
+      onClick={handleSubmit}
+      className="bg-white text-indigo-700 text-lg px-8 py-3 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-50 font-bold"
+    >
+      ✅ Proceed to Payment
+    </button>
+  </div>
+</section>
+
+
+      {/* Rules Modal */}
+      {showRules && (
+        <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg p-4 sm:p-6 max-w-2xl max-h-[80vh] overflow-y-auto w-full">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold text-indigo-900">Event Rules and Regulations</h2>
+              <button 
+                onClick={handleCloseRules}
+                className="text-gray-500 hover:text-gray-700 p-1 rounded-full hover:bg-gray-100 transition-all"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="prose max-w-none">
+              <h3 className="text-lg font-semibold text-indigo-800 border-b pb-2 mb-4">
+                Range-e-Chinar Event Rules
+              </h3>
+              
+              <div className="space-y-6">
+                <div>
+                  <h4 className="font-bold text-gray-800 mb-2">Identification Requirements</h4>
+                  <ul className="list-disc pl-5 space-y-2">
+                    <li>All participants must carry a valid government-issued ID (Aadhar, PAN, Driving License). Entry will be granted only after verification at the registration/security desk.</li>
+                    <li>Students without their college/school ID cards are not allowed inside.</li>
+                    <li>Presenting fake ID to access the event or avoid applicable fees is strictly prohibited.</li>
+                  </ul>
+                </div>
+
+                <div>
+                  <h4 className="font-bold text-gray-800 mb-2">Entry Fee Details</h4>
+                  <ul className="list-disc pl-5 space-y-2">
+                    <li>School Students (till Class 10) – Rs.20</li>
+                    <li>College Students (Including Class 11 & 12) – Rs.29</li>
+                    <li>College alumni (with valid proof) – Rs.499</li>
+                    <li>Others (With Any govt ID) – Rs.999</li>
+                  </ul>
+                </div>
+
+                <div>
+                  <h4 className="font-bold text-gray-800 mb-2">Entry Band Rules</h4>
+                  <ul className="list-disc pl-5 space-y-2">
+                    <li>Participants must wear their bands provided during registration at all times.</li>
+                    <li>If participants leave the campus during the event, they must remove the previous band and register and pay again to get a new band.</li>
+                    <li>Each participant should purchase 2 different bands for Day 1 and Day 2.</li>
+                    <li>The institution is not responsible for replacing lost or damaged bands.</li>
+                  </ul>
+                </div>
+
+                <div>
+                  <h4 className="font-bold text-gray-800 mb-2">Game Zone Registration</h4>
+                  <p>
+                    Participants registering for game zone activities must pay a separate registration fee at the game zone registration desk available near the main gate and Chinar premises (in addition to the entry fee).
+                  </p>
+                </div>
+
+                <div>
+                  <h4 className="font-bold text-gray-800 mb-2">Prohibited Items</h4>
+                  <ul className="list-disc pl-5 space-y-2">
+                    <li>Sharp objects</li>
+                    <li>Weapons of any kind</li>
+                    <li>Fireworks or explosives</li>
+                    <li>Alcoholic beverages or illegal substances</li>
+                  </ul>
+                </div>
+
+                <div>
+                  <h4 className="font-bold text-gray-800 mb-2">Safety and Security</h4>
+                  <ul className="list-disc pl-5 space-y-2">
+                    <li>Security personnel have the right to inspect bags or belongings at entry points.</li>
+                    <li>Follow all instructions given by security staff and volunteers.</li>
+                    <li>The organizers are not responsible for loss of personal belongings.</li>
+                    <li>In case of emergencies, follow announcements and emergency evacuation plans.</li>
+                    <li>Report any suspicious activity or unattended bags to security personnel immediately.</li>
+                  </ul>
+                </div>
+
+                <div>
+                  <h4 className="font-bold text-gray-800 mb-2">Conduct Policy</h4>
+                  <ul className="list-disc pl-5 space-y-2">
+                    <li>Participants must maintain discipline and respectful behavior throughout the event.</li>
+                    <li>Any form of harassment, abuse, or physical altercation will result in immediate disqualification and removal.</li>
+                    <li>Avoid damage to event property, decorations, or any campus infrastructure.</li>
+                  </ul>
+                </div>
+
+                <div>
+                  <h4 className="font-bold text-gray-800 mb-2">Violations</h4>
+                  <p>Violations of these rules may result in:</p>
+                  <ul className="list-disc pl-5 space-y-2">
+                    <li>Immediate removal from the event premises</li>
+                    <li>Reporting to local authorities (in serious cases)</li>
+                    <li>Disqualification from participation or award</li>
+                    <li>Accountability for damages</li>
+                  </ul>
+                </div>
+              </div>
+
+              <p className="mt-6 pt-4 border-t text-gray-700 italic">
+                <strong>Note:</strong> The organizing committee reserves the right to make changes to the rules and schedule as needed. Any updates will be communicated to registered participants.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }
