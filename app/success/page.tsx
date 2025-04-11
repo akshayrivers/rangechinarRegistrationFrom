@@ -10,7 +10,7 @@ export default function SuccessPage() {
         with your ticket attached
       </p>
 
-      <a href="/" className="inline-block mt-4 text-blue-600 underline">
+      <a href="https://rang-e-chinar.nitsri.ac.in/" className="inline-block mt-4 text-blue-600 underline">
         ← Go back to homepage
       </a>
     </main>
