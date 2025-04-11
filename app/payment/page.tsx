@@ -200,7 +200,7 @@ export default function PaymentPage() {
             <div className="flex flex-col items-center">
               {loadingQr ? (
                 <div className="bg-gray-100 h-64 w-64 flex items-center justify-center rounded-lg">
-                  <div>WAIT FOR QR TO LOAD OR REFRESH</div>
+                  <div>WAIT FOR QR TO LOAD</div>
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
                 </div>
               ) : (

@@ -19,8 +19,8 @@ const registrationSchema = z.object({
   is_nit_student: z.boolean(),
   participant_category: z.string().optional(),
   selected_events: z
-    .array(z.string())
-    .min(1, "At least one event must be selected"),
+    .array(z.string()),
+    
   agree_to_rules: z.boolean().refine(val => val === true, {
     message: "You must agree to the event rules"
   })
@@ -42,7 +42,7 @@ interface Event {
 const participantCategories = [
   { id: "school", name: "School Student (till Class 10)", fee: 20 },
   { id: "college", name: "College Student (Including Class 11 & 12)", fee: 29 },
-  { id: "alumni", name: "College Alumni (with valid proof)", fee: 499 },
+  { id: "alumni", name: "NIT Alumni ", fee: 499 },
   { id: "others", name: "Others (With Any govt ID)", fee: 999 }
 ];
 
@@ -164,7 +164,7 @@ export default function HomePage() {
   return (
     <main className="max-w-5xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
       <h1 className="text-3xl sm:text-4xl font-bold mb-6 sm:mb-10 text-center text-indigo-900">
-        🌟 Rang-e-Chinar Event Registration
+        🌟 Rang-e-Chinar 2.0 Event Registration
       </h1>
 
      
@@ -471,7 +471,7 @@ export default function HomePage() {
             </div>
             <div className="prose max-w-none">
               <h3 className="text-lg font-semibold text-indigo-800 border-b pb-2 mb-4">
-                Range-e-Chinar Event Rules
+                Range-e-Chinar 2.0 Event Rules
               </h3>
               
               <div className="space-y-6">
@@ -489,7 +489,7 @@ export default function HomePage() {
                   <ul className="list-disc pl-5 space-y-2">
                     <li>School Students (till Class 10) – Rs.20</li>
                     <li>College Students (Including Class 11 & 12) – Rs.29</li>
-                    <li>College alumni (with valid proof) – Rs.499</li>
+                    <li>NIT alumni – Rs.299</li>
                     <li>Others (With Any govt ID) – Rs.999</li>
                   </ul>
                 </div>
