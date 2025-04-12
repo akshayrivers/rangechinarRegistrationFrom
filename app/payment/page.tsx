@@ -39,10 +39,12 @@ export default function PaymentPage() {
         const parsed: RegistrationData = JSON.parse(stored);
         setData(parsed);
         
-        // Create UPI link for QR code
-        const fee = parsed.total_fee ?? 0;
-        const link = `upi://pay?pa=${upiId}&pn=Rang-e-chinar&am=${fee}&cu=INR&tn=Event Registration`;
-        setUpiLink(link);
+        // Only create UPI link if payment is required
+        if (parsed.total_fee > 0) {
+          const fee = parsed.total_fee;
+          const link = `upi://pay?pa=${upiId}&pn=Rang-e-chinar&am=${fee}&cu=INR&tn=Event Registration`;
+          setUpiLink(link);
+        }
       } catch (e) {
         console.error("Error parsing registration data:", e);
       }
@@ -53,7 +55,7 @@ export default function PaymentPage() {
   }, [router]);
 
   const handleSubmit = async () => {
-    if (!txnId.trim()) {
+    if (data?.total_fee && data.total_fee > 0 && !txnId.trim()) {
       alert("Please enter transaction ID");
       return;
     }
@@ -70,7 +72,8 @@ export default function PaymentPage() {
         },
         body: JSON.stringify({
           ...data,
-          txn_id: txnId,
+          // For zero payment, use "FREE" as txn_id
+          txn_id: data.total_fee > 0 ? txnId : "FREE",
           amount: data.total_fee
         }),
       });
@@ -97,16 +100,19 @@ export default function PaymentPage() {
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center p-8">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
-          <p className="text-lg font-medium text-gray-700">Loading payment details...</p>
+          <p className="text-lg font-medium text-gray-700">Loading registration details...</p>
         </div>
       </div>
     );
   }
 
+  // Check if total fee is zero
+  const isZeroFee = data.total_fee === 0;
+
   return (
     <main className="max-w-5xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
       <h1 className="text-3xl sm:text-4xl font-bold mb-6 sm:mb-10 text-center text-indigo-900">
-        🌟 Payment Confirmation
+        {isZeroFee ? "🌟 Registration Confirmation" : "🌟 Payment Confirmation"}
       </h1>
       
       <div className="bg-white p-6 rounded-2xl shadow-lg border border-indigo-100 mb-8">
@@ -168,85 +174,117 @@ export default function PaymentPage() {
             
             <div className="bg-indigo-50 p-3 rounded-lg">
               <p className="text-sm text-indigo-600">Total Amount</p>
-              <p className="text-lg font-bold text-indigo-800">₹{data.total_fee}</p>
+              <p className="text-lg font-bold text-gray-800">
+                {isZeroFee ? "FREE" : `₹${data.total_fee}`}
+              </p>
             </div>
           </div>
         </div>
       </div>
       
-      {/* Payment Instructions */}
-      <div className="bg-white p-6 rounded-2xl shadow-lg border border-indigo-100">
-        <h2 className="text-xl font-semibold text-indigo-800 flex items-center mb-4">
-          <span className="mr-2">💳</span> Complete Payment
-        </h2>
-        
-        <div className="flex flex-col sm:flex-row gap-8">
-          {/* QR Code Section */}
-          <div className="flex-1 sm:border-r sm:pr-8 border-gray-200">
-            <h3 className="font-medium text-gray-700 mb-3">Scan QR Code to Pay</h3>
+      {/* Payment Instructions or Direct Registration Button for Zero Fee */}
+      {isZeroFee ? (
+        <div className="bg-white p-6 rounded-2xl shadow-lg border border-indigo-100">
+          <div className="text-center">
+            <h2 className="text-xl font-semibold text-indigo-800 mb-4">
+              <span className="mr-2">✨</span> Free Registration
+            </h2>
             
-            <div className="flex flex-col items-center">
-              {upiLink && (
-                <div className="bg-white p-4 border border-gray-200 shadow-sm rounded-lg">
-                  <QRCode 
-                    value={upiLink}
-                    size={256}
-                    style={{ height: "auto", maxWidth: "100%", width: "100%" }}
-                    viewBox={`0 0 256 256`}
-                  />
-                </div>
+            <p className="text-gray-600 mb-6">
+              You qualify for free registration! Click the button below to confirm your registration.
+            </p>
+            
+            <button
+              onClick={handleSubmit}
+              disabled={isSubmitting}
+              className={`bg-indigo-600 text-white py-3 px-8 rounded-lg font-medium transition-all 
+                ${isSubmitting ? 'opacity-70 cursor-not-allowed' : 'hover:bg-indigo-700'}`}
+            >
+              {isSubmitting ? (
+                <span className="flex items-center justify-center">
+                  <span className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full mr-2"></span>
+                  Processing...
+                </span>
+              ) : (
+                "Complete Registration"
               )}
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div className="bg-white p-6 rounded-2xl shadow-lg border border-indigo-100">
+          <h2 className="text-xl font-semibold text-indigo-800 flex items-center mb-4">
+            <span className="mr-2">💳</span> Complete Payment
+          </h2>
+          
+          <div className="flex flex-col sm:flex-row gap-8">
+            {/* QR Code Section */}
+            <div className="flex-1 sm:border-r sm:pr-8 border-gray-200">
+              <h3 className="font-medium text-gray-700 mb-3">Scan QR Code to Pay</h3>
               
-              <div className="mt-4 text-center">
-                <p className="text-gray-600">UPI ID:</p>
-                <p className="font-mono bg-gray-50 py-1 px-3 rounded border border-gray-200 select-all text-indigo-600">
-                  {upiId}
-                </p>
+              <div className="flex flex-col items-center">
+                {upiLink && (
+                  <div className="bg-white p-4 border border-gray-200 shadow-sm rounded-lg">
+                    <QRCode 
+                      value={upiLink}
+                      size={256}
+                      style={{ height: "auto", maxWidth: "100%", width: "100%" }}
+                      viewBox={`0 0 256 256`}
+                    />
+                  </div>
+                )}
+                
+                <div className="mt-4 text-center">
+                  <p className="text-gray-600">UPI ID:</p>
+                  <p className="font-mono bg-gray-50 py-1 px-3 rounded border border-gray-200 select-all text-indigo-600">
+                    {upiId}
+                  </p>
+                </div>
               </div>
             </div>
-          </div>
-          
-          {/* Payment Verification */}
-          <div className="flex-1">
-            <h3 className="font-medium text-gray-700 mb-3">Verify Payment</h3>
             
-            <div className="space-y-6">
-              <div>
-                <p className="text-gray-600 mb-2">
-                  Once you've made the payment, enter the UPI transaction ID to complete your registration.
-                </p>
-                
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  UPI Transaction ID
-                </label>
-                <input
-                  type="text"
-                  value={txnId}
-                  onChange={(e) => setTxnId(e.target.value)}
-                  placeholder="Enter UPI Transaction ID"
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-transparent transition-all"
-                />
-              </div>
+            {/* Payment Verification */}
+            <div className="flex-1">
+              <h3 className="font-medium text-gray-700 mb-3">Verify Payment</h3>
               
-              <button
-                onClick={handleSubmit}
-                disabled={isSubmitting || !txnId.trim()}
-                className={`w-full bg-indigo-600 text-white py-3 rounded-lg font-medium transition-all 
-                  ${isSubmitting ? 'opacity-70 cursor-not-allowed' : 'hover:bg-indigo-700'}`}
-              >
-                {isSubmitting ? (
-                  <span className="flex items-center justify-center">
-                    <span className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full mr-2"></span>
-                    Processing...
-                  </span>
-                ) : (
-                  "Confirm Registration"
-                )}
-              </button>
+              <div className="space-y-6">
+                <div>
+                  <p className="text-gray-600 mb-2">
+                    Once you've made the payment, enter the UPI transaction ID to complete your registration.
+                  </p>
+                  
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    UPI Transaction ID
+                  </label>
+                  <input
+                    type="text"
+                    value={txnId}
+                    onChange={(e) => setTxnId(e.target.value)}
+                    placeholder="Enter UPI Transaction ID"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-transparent transition-all"
+                  />
+                </div>
+                
+                <button
+                  onClick={handleSubmit}
+                  disabled={isSubmitting || !txnId.trim()}
+                  className={`w-full bg-indigo-600 text-white py-3 rounded-lg font-medium transition-all 
+                    ${isSubmitting ? 'opacity-70 cursor-not-allowed' : 'hover:bg-indigo-700'}`}
+                >
+                  {isSubmitting ? (
+                    <span className="flex items-center justify-center">
+                      <span className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full mr-2"></span>
+                      Processing...
+                    </span>
+                  ) : (
+                    "Confirm Registration"
+                  )}
+                </button>
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
       
       {/* Back to Registration Button */}
       <div className="mt-6 text-center">

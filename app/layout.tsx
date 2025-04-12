@@ -15,6 +15,9 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Registration Form",
   description: "Form registartion",
+  icons:{
+    icon:"/file.png"
+  }
 };
 
 export default function RootLayout({
