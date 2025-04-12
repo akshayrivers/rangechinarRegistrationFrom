@@ -42,7 +42,7 @@ interface Event {
 const participantCategories = [
   { id: "school", name: "School Student (till Class 10)", fee: 20 },
   { id: "college", name: "College Student (Including Class 11 & 12)", fee: 29 },
-  { id: "alumni", name: "NIT Alumni ", fee: 499 },
+  { id: "alumni", name: "NIT Alumni ", fee: 299 },
   { id: "others", name: "Others (With Any govt ID)", fee: 999 }
 ];
 
