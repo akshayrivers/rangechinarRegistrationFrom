@@ -80,6 +80,11 @@ export default function HomePage() {
       });
   }, []);
 
+  // Helper function to check if an event is a haunted house event
+  const isHauntedHouseEvent = (event: Event) => {
+    return event.name.toLowerCase().includes("haunted house");
+  };
+
   // Calculate fees whenever relevant form fields change
   useEffect(() => {
     // Get selected events
@@ -95,9 +100,9 @@ export default function HomePage() {
     const hasSelectedEvents = selectedEventObjs.length > 0;
     
     if (form.is_nit_student) {
-      // For NIT students: Only charge for workshop category events
+      // For NIT students: Charge for Workshop category AND Haunted House events
       newEventsFee = selectedEventObjs
-        .filter(event => event.category === "Workshop")
+        .filter(event => event.category === "Workshop" || isHauntedHouseEvent(event))
         .reduce((sum, ev) => sum + ev.fee, 0);
     } else {
       // For non-NIT participants: Always charge for event fees
@@ -183,6 +188,7 @@ export default function HomePage() {
           <p className="font-medium text-green-700">Fee Policy for NIT Students:</p>
           <ul className="list-disc pl-5 space-y-1">
             <li>Workshop events: Regular fee applies</li>
+            <li>Haunted House: Regular fee applies</li>
             <li>All other events: Free (no charge)</li>
           </ul>
         </div>
@@ -394,7 +400,9 @@ export default function HomePage() {
             {filteredEvents.map((event) => {
               const eventId = String(event.id);
               // Determine if this event should have a special indicator (free for NIT students)
-              const isFreeForNIT = form.is_nit_student && event.category !== "Workshop";
+              const isFreeForNIT = form.is_nit_student && 
+                event.category !== "Workshop" && 
+                !isHauntedHouseEvent(event);
               
               return (
                 <label
@@ -429,6 +437,8 @@ export default function HomePage() {
                           <span>₹{event.fee}</span>
                         )}
                       </p>
+                      {/* Add special flag for Haunted House events to ensure they're marked correctly */}
+                      {isHauntedHouseEvent(event) && form.is_nit_student}
                     </div>
                   </div>
                 </label>
@@ -475,7 +485,7 @@ export default function HomePage() {
             <p className="text-2xl font-bold">₹{eventsFee}</p>
             {form.is_nit_student && (
               <p className="text-xs text-green-600 mt-1">
-                *Only workshops are charged
+                *Only workshops & haunted house
               </p>
             )}
           </div>
@@ -540,7 +550,7 @@ export default function HomePage() {
                     <li>NIT alumni – Rs.299</li>
                     <li>Others (With Any govt ID) – Rs.999</li>
                     <li className="text-green-700 font-medium">*Entry fee is waived when registering for any event (for non-NIT participants)</li>
-                    <li className="text-green-700 font-medium">*NIT students participate in non-workshop events for free</li>
+                    <li className="text-green-700 font-medium">*NIT students participate in most events for free, except workshops and haunted house</li>
                   </ul>
                 </div>
 
