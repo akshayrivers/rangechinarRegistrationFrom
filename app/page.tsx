@@ -82,22 +82,36 @@ export default function HomePage() {
 
   // Calculate fees whenever relevant form fields change
   useEffect(() => {
-    // Calculate events fee
+    // Get selected events
     const selectedEventObjs = events.filter((event) =>
       form.selected_events.includes(String(event.id))
     );
-    const newEventsFee = selectedEventObjs.reduce((sum, ev) => sum + ev.fee, 0);
-    setEventsFee(newEventsFee);
     
-    // Calculate entry fee
+    // Initialize event fees
+    let newEventsFee = 0;
     let newEntryFee = 0;
-    if (!form.is_nit_student) {
-      const selectedCategory = participantCategories.find(cat => cat.id === form.participant_category);
-      newEntryFee = selectedCategory ? selectedCategory.fee : 29; // Default to college student fee
-    }
-    setEntryFee(newEntryFee);
     
-    // Calculate total
+    // Check if user has selected any events
+    const hasSelectedEvents = selectedEventObjs.length > 0;
+    
+    if (form.is_nit_student) {
+      // For NIT students: Only charge for workshop category events
+      newEventsFee = selectedEventObjs
+        .filter(event => event.category === "Workshop")
+        .reduce((sum, ev) => sum + ev.fee, 0);
+    } else {
+      // For non-NIT participants: Always charge for event fees
+      newEventsFee = selectedEventObjs.reduce((sum, ev) => sum + ev.fee, 0);
+      
+      // Only charge entry fee if they haven't selected any events
+      if (!hasSelectedEvents) {
+        const selectedCategory = participantCategories.find(cat => cat.id === form.participant_category);
+        newEntryFee = selectedCategory ? selectedCategory.fee : 29; // Default to college student fee
+      }
+    }
+    
+    setEventsFee(newEventsFee);
+    setEntryFee(newEntryFee);
     setTotalFee(newEventsFee + newEntryFee);
   }, [form.selected_events, form.is_nit_student, form.participant_category, events]);
 
@@ -161,13 +175,40 @@ export default function HomePage() {
     setCategoryFilter("All"); // Reset category filter when switching days
   };
 
+  // Display message about fee policy based on user type
+  const getFeeExplanation = () => {
+    if (form.is_nit_student) {
+      return (
+        <div className="mt-2 bg-green-50 p-3 rounded-lg text-sm">
+          <p className="font-medium text-green-700">Fee Policy for NIT Students:</p>
+          <ul className="list-disc pl-5 space-y-1">
+            <li>Workshop events: Regular fee applies</li>
+            <li>All other events: Free (no charge)</li>
+          </ul>
+        </div>
+      );
+    } else {
+      const hasSelectedEvents = form.selected_events.length > 0;
+      return (
+        <div className="mt-2 bg-indigo-50 p-3 rounded-lg text-sm">
+          <p className="font-medium text-indigo-700 mb-1">Fee Policy for External Participants:</p>
+          <ul className="list-disc pl-5 space-y-1">
+            <li>Event registration: Regular event fees apply</li>
+            <li>Entry fee: {hasSelectedEvents ? 
+              <span className="font-medium text-green-700">Waived when registering for events</span> : 
+              <span>Required if not participating in any events</span>}
+            </li>
+          </ul>
+        </div>
+      );
+    }
+  };
+
   return (
     <main className="max-w-5xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
       <h1 className="text-3xl sm:text-4xl font-bold mb-6 sm:mb-10 text-center text-indigo-900">
         🌟 Rang-e-Chinar 2.0 Event Registration
       </h1>
-
-     
 
       {/* Personal Info */}
       <section className="space-y-6 bg-white p-4 sm:p-6 rounded-2xl shadow-lg border border-indigo-100">
@@ -303,19 +344,8 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* Entry Fee Explanation */}
-        {!form.is_nit_student && (
-          <div className="mt-2 bg-indigo-50 p-3 rounded-lg text-sm text-gray-700">
-            <p className="font-medium text-indigo-700 mb-1">Entry Fee Categories:</p>
-            <ul className="list-disc pl-5 space-y-1">
-              {participantCategories.map((category) => (
-                <li key={category.id}>
-                  {category.name} – ₹{category.fee}
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
+        {/* Fee Explanation */}
+        {getFeeExplanation()}
       </section>
 
       {/* Event Selection */}
@@ -363,6 +393,9 @@ export default function HomePage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
             {filteredEvents.map((event) => {
               const eventId = String(event.id);
+              // Determine if this event should have a special indicator (free for NIT students)
+              const isFreeForNIT = form.is_nit_student && event.category !== "Workshop";
+              
               return (
                 <label
                   key={eventId}
@@ -389,7 +422,13 @@ export default function HomePage() {
                       <p className="text-sm text-gray-500">
                         <span className="font-medium">Category:</span> {event.sub_category}
                       </p>
-                      <p className="text-sm font-medium text-indigo-600">Fee: ₹{event.fee}</p>
+                      <p className="text-sm font-medium text-indigo-600">
+                        Fee: {isFreeForNIT ? (
+                          <span className="text-green-600">Free for NIT Students</span>
+                        ) : (
+                          <span>₹{event.fee}</span>
+                        )}
+                      </p>
                     </div>
                   </div>
                 </label>
@@ -429,32 +468,41 @@ export default function HomePage() {
 
       {/* Final Fee Summary Card */}
       <section className="mt-6 sm:mt-8 p-4 sm:p-6 bg-gradient-to-r from-indigo-600 to-purple-700 rounded-2xl shadow-lg text-white">
-  <h2 className="text-xl font-semibold mb-4">Payment Summary</h2>
-  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
-    <div className="bg-white bg-opacity-90 rounded-lg p-3 text-gray-900">
-      <p className="text-sm text-gray-700">Events Fee</p>
-      <p className="text-2xl font-bold">₹{eventsFee}</p>
-    </div>
-    <div className="bg-white bg-opacity-90 rounded-lg p-3 text-gray-900">
-      <p className="text-sm text-gray-700">Entry Fee</p>
-      <p className="text-2xl font-bold">₹{entryFee}</p>
-    </div>
-    <div className="bg-white bg-opacity-90 rounded-lg p-3 text-gray-900">
-      <p className="text-sm text-gray-700">Total Fee</p>
-      <p className="text-2xl font-bold">₹{totalFee}</p>
-    </div>
-  </div>
+        <h2 className="text-xl font-semibold mb-4">Payment Summary</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
+          <div className="bg-white bg-opacity-90 rounded-lg p-3 text-gray-900">
+            <p className="text-sm text-gray-700">Events Fee</p>
+            <p className="text-2xl font-bold">₹{eventsFee}</p>
+            {form.is_nit_student && (
+              <p className="text-xs text-green-600 mt-1">
+                *Only workshops are charged
+              </p>
+            )}
+          </div>
+          <div className="bg-white bg-opacity-90 rounded-lg p-3 text-gray-900">
+            <p className="text-sm text-gray-700">Entry Fee</p>
+            <p className="text-2xl font-bold">₹{entryFee}</p>
+            {!form.is_nit_student && form.selected_events.length > 0 && (
+              <p className="text-xs text-green-600 mt-1">
+                *Waived with event registration
+              </p>
+            )}
+          </div>
+          <div className="bg-white bg-opacity-90 rounded-lg p-3 text-gray-900">
+            <p className="text-sm text-gray-700">Total Fee</p>
+            <p className="text-2xl font-bold">₹{totalFee}</p>
+          </div>
+        </div>
 
-  <div className="text-center mt-4">
-    <button
-      onClick={handleSubmit}
-      className="bg-white text-indigo-700 text-lg px-8 py-3 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-50 font-bold"
-    >
-      ✅ Proceed to Payment
-    </button>
-  </div>
-</section>
-
+        <div className="text-center mt-4">
+          <button
+            onClick={handleSubmit}
+            className="bg-white text-indigo-700 text-lg px-8 py-3 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-50 font-bold"
+          >
+            ✅ Proceed to Payment
+          </button>
+        </div>
+      </section>
 
       {/* Rules Modal */}
       {showRules && (
@@ -491,6 +539,8 @@ export default function HomePage() {
                     <li>College Students (Including Class 11 & 12) – Rs.29</li>
                     <li>NIT alumni – Rs.299</li>
                     <li>Others (With Any govt ID) – Rs.999</li>
+                    <li className="text-green-700 font-medium">*Entry fee is waived when registering for any event (for non-NIT participants)</li>
+                    <li className="text-green-700 font-medium">*NIT students participate in non-workshop events for free</li>
                   </ul>
                 </div>
 
