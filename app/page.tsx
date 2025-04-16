@@ -96,23 +96,20 @@ export default function HomePage() {
     let newEventsFee = 0;
     let newEntryFee = 0;
     
-    // Check if user has selected any events
-    const hasSelectedEvents = selectedEventObjs.length > 0;
-    
     if (form.is_nit_student) {
       // For NIT students: Charge for Workshop category AND Haunted House events
       newEventsFee = selectedEventObjs
         .filter(event => event.category === "Workshop" || isHauntedHouseEvent(event))
         .reduce((sum, ev) => sum + ev.fee, 0);
+      // NIT students don't pay entry fee
+      newEntryFee = 0;
     } else {
-      // For non-NIT participants: Always charge for event fees
+      // For non-NIT participants: Charge for event fees
       newEventsFee = selectedEventObjs.reduce((sum, ev) => sum + ev.fee, 0);
       
-      // Only charge entry fee if they haven't selected any events
-      if (!hasSelectedEvents) {
-        const selectedCategory = participantCategories.find(cat => cat.id === form.participant_category);
-        newEntryFee = selectedCategory ? selectedCategory.fee : 29; // Default to college student fee
-      }
+      // CHANGED: Always charge entry fee for non-NIT students
+      const selectedCategory = participantCategories.find(cat => cat.id === form.participant_category);
+      newEntryFee = selectedCategory ? selectedCategory.fee : 29; // Default to college student fee
     }
     
     setEventsFee(newEventsFee);
@@ -194,16 +191,12 @@ export default function HomePage() {
         </div>
       );
     } else {
-      const hasSelectedEvents = form.selected_events.length > 0;
       return (
         <div className="mt-2 bg-indigo-50 p-3 rounded-lg text-sm">
           <p className="font-medium text-indigo-700 mb-1">Fee Policy for External Participants:</p>
           <ul className="list-disc pl-5 space-y-1">
             <li>Event registration: Regular event fees apply</li>
-            <li>Entry fee: {hasSelectedEvents ? 
-              <span className="font-medium text-green-700">Waived when registering for events</span> : 
-              <span>Required if not participating in any events</span>}
-            </li>
+            <li>Entry fee: <span className="font-medium">Required for all external participants</span></li>
           </ul>
         </div>
       );
@@ -492,9 +485,9 @@ export default function HomePage() {
           <div className="bg-white bg-opacity-90 rounded-lg p-3 text-gray-900">
             <p className="text-sm text-gray-700">Entry Fee</p>
             <p className="text-2xl font-bold">₹{entryFee}</p>
-            {!form.is_nit_student && form.selected_events.length > 0 && (
-              <p className="text-xs text-green-600 mt-1">
-                *Waived with event registration
+            {!form.is_nit_student && (
+              <p className="text-xs text-amber-600 mt-1">
+                *Required for all external participants
               </p>
             )}
           </div>
@@ -549,7 +542,7 @@ export default function HomePage() {
                     <li>College Students (Including Class 11 & 12) – Rs.29</li>
                     <li>NIT alumni – Rs.299</li>
                     <li>Others (With Any govt ID) – Rs.999</li>
-                    <li className="text-green-700 font-medium">*Entry fee is waived when registering for any event (for non-NIT participants)</li>
+                    <li className="text-amber-700 font-medium">*Entry fee is required for all external participants</li>
                     <li className="text-green-700 font-medium">*NIT students participate in most events for free, except workshops and haunted house</li>
                   </ul>
                 </div>
