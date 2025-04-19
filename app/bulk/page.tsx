@@ -19,12 +19,11 @@ const registrationSchema = z.object({
   gender: z.string().min(1, "Gender is required"),
   is_nit_student: z.boolean(),
   participant_category: z.string().optional(),
-  selected_events: z
-    .array(z.string()),
-    
-  agree_to_rules: z.boolean().refine(val => val === true, {
-    message: "You must agree to the event rules"
-  })
+  selected_events: z.array(z.string()),
+
+  agree_to_rules: z.boolean().refine((val) => val === true, {
+    message: "You must agree to the event rules",
+  }),
 });
 
 type PrimaryContactRegistrationData = z.input<typeof registrationSchema>;
@@ -92,7 +91,7 @@ export default function BulkRegistration() {
     is_nit_student: false,
     participant_category: "college", // Default to college student
     selected_events: [],
-    agree_to_rules: false
+    agree_to_rules: false,
   });
 
   // Participants
@@ -135,50 +134,44 @@ export default function BulkRegistration() {
     );
   }, [categoryFilter, events, activeDay]);
 
-    // Helper function to check if an event is a haunted house event
-    const isHauntedHouseEvent = (event: Event) => {
-      return event.name.toLowerCase().includes("haunted house");
-    };
-
-
-    
-    
+  // Helper function to check if an event is a haunted house event
+  const isHauntedHouseEvent = (event: Event) => {
+    return event.name.toLowerCase().includes("haunted house");
+  };
 
   // Fee calculation logic
   useEffect(() => {
-    if (selectedEvents.length === 0) {
-      setEventsFee(0);
-      setEntryFee(0);
-      setFeePerParticipant(0);
-      setTotalFee(0);
-      return;
-    }
-
-    // Get selected events
-    const selectedEventObjs = events.filter((event) =>
-      primary.selected_events.includes(String(event.id))
-    );
-    
     // Initialize event fees
     let newEventsFee = 0;
     let newEntryFee = 0;
-    
-    if (primary.is_nit_student) {
-      // For NIT students: Charge for Workshop category AND Haunted House events
-      newEventsFee = selectedEventObjs
-        .filter(event => event.category === "Workshop" || isHauntedHouseEvent(event))
-        .reduce((sum, ev) => sum + ev.fee, 0);
-      // NIT students don't pay entry fee
-      newEntryFee = 0;
-    } else {
-      // For non-NIT participants: Charge for event fees
-      newEventsFee = selectedEventObjs.reduce((sum, ev) => sum + ev.fee, 0);
-      
-      // CHANGED: Always charge entry fee for non-NIT students
-      const selectedCategory = participantCategories.find(cat => cat.id === primary.participant_category);
+
+    // Calculate entry fee based on participant category (only for non-NIT students)
+    if (!primary.is_nit_student) {
+      const selectedCategory = participantCategories.find(
+        (cat) => cat.id === primary.participant_category
+      );
       newEntryFee = selectedCategory ? selectedCategory.fee : 29; // Default to college student fee
     }
 
+    // Calculate event fees if events are selected
+    if (selectedEvents.length > 0) {
+      const selectedEventObjs = events.filter((event) =>
+        selectedEvents.includes(String(event.id))
+      );
+
+      if (primary.is_nit_student) {
+        // For NIT students: Charge for Workshop category AND Haunted House events
+        newEventsFee = selectedEventObjs
+          .filter(
+            (event) =>
+              event.category === "Workshop" || isHauntedHouseEvent(event)
+          )
+          .reduce((sum, ev) => sum + ev.fee, 0);
+      } else {
+        // For non-NIT participants: Charge for event fees
+        newEventsFee = selectedEventObjs.reduce((sum, ev) => sum + ev.fee, 0);
+      }
+    }
 
     const fee = newEventsFee + newEntryFee;
     setEventsFee(newEventsFee);
@@ -195,9 +188,18 @@ export default function BulkRegistration() {
     } else {
       setUpiLink("");
     }
-  }, [selectedEvents, events, totalParticipants]);
+  }, [
+    selectedEvents,
+    events,
+    totalParticipants,
+    primary.is_nit_student,
+    primary.participant_category,
+  ]);
 
-  const handleInput = (key: keyof PrimaryContactRegistrationData, value: string | boolean) => {
+  const handleInput = (
+    key: keyof PrimaryContactRegistrationData,
+    value: string | boolean
+  ) => {
     setPrimary((prev) => ({ ...prev, [key]: value }));
   };
 
@@ -371,7 +373,7 @@ export default function BulkRegistration() {
               Gender*
             </label>
             <select
-              value={newParticipant.gender}
+              value={primary.gender}
               onChange={(e) =>
                 setPrimary({
                   ...primary,
@@ -420,20 +422,27 @@ export default function BulkRegistration() {
                 type="checkbox"
                 id="is_nit_student"
                 checked={primary.is_nit_student}
-                onChange={(e) => handleInput("is_nit_student", e.target.checked)}
+                onChange={(e) =>
+                  handleInput("is_nit_student", e.target.checked)
+                }
                 className="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500 border-gray-300 mr-2"
               />
-              <label htmlFor="is_nit_student" className="text-sm font-medium text-gray-700">
-                NIT Srinagar Student 
+              <label
+                htmlFor="is_nit_student"
+                className="text-sm font-medium text-gray-700"
+              >
+                NIT Srinagar Student
               </label>
             </div>
-            
+
             {/* Participant Category Dropdown - Only show when not an NIT student */}
             {!primary.is_nit_student && (
               <div className="w-full">
                 <select
                   value={primary.participant_category}
-                  onChange={(e) => handleInput("participant_category", e.target.value)}
+                  onChange={(e) =>
+                    handleInput("participant_category", e.target.value)
+                  }
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-transparent transition-all text-sm"
                 >
                   {participantCategories.map((category) => (
@@ -745,7 +754,7 @@ export default function BulkRegistration() {
                 disabled={
                   isSubmitting || !txnId.trim() || participants.length === 0
                 }
-                className={`w-full bg-indigo-600 text-white py-3 rounded-lg font-medium transition-all 
+                className={`w-full bg-indigo-600 text-white py-3 rounded-lg font-medium transition-all
                   ${
                     isSubmitting || !txnId.trim() || participants.length === 0
                       ? "opacity-70 cursor-not-allowed"

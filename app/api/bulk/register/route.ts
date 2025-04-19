@@ -11,9 +11,9 @@ export async function POST(req: Request) {
     } = await req.json()
 
     // Validate required fields
-    if (!primary_contact?.email || !primary_contact?.organization) {
+    if (!primary_contact?.email || !primary_contact?.organization || !primary_contact?.participant_category) {
         return NextResponse.json(
-            { error: 'Primary contact email and organization are required.' },
+            { error: 'Primary contact email, organization, and participant category are required.' },
             { status: 400 }
         )
     }
@@ -48,7 +48,7 @@ export async function POST(req: Request) {
         )
     }
 
-    // Prepare participants payload
+    // Prepare participants payload - remove is_nit_student field
     const insertPayload = participants.map((p) => ({
         first_name: p.first_name,
         last_name: p.last_name,
@@ -59,7 +59,8 @@ export async function POST(req: Request) {
         gender: p.gender,
         txn_id,
         amount,
-        Bulk: true
+        Bulk: true,
+        participant_category: primary_contact.participant_category
     }))
 
     // Insert participants
@@ -75,40 +76,43 @@ export async function POST(req: Request) {
         )
     }
 
-    // Create event registrations
-    const eventRegistrations = insertedParticipants.flatMap(participant =>
-        selected_events.map(event_id => ({
-            event_id,
-            participant_id: participant.id
-        }))
-    )
-
-    const { error: regError } = await supabase
-        .from('event_registrations')
-        .insert(eventRegistrations)
-
-    if (regError) {
-        // Rollback participant insertion if event registration fails
-        await supabase
-            .from('participants')
-            .delete()
-            .in('id', insertedParticipants.map(p => p.id))
-
-        return NextResponse.json(
-            { error: 'Event registration failed: ' + regError.message },
-            { status: 500 }
+    // Create event registrations only if events are selected
+    if (selected_events && selected_events.length > 0) {
+        const eventRegistrations = insertedParticipants.flatMap(participant =>
+            selected_events.map(event_id => ({
+                event_id,
+                participant_id: participant.id
+            }))
         )
+
+        const { error: regError } = await supabase
+            .from('event_registrations')
+            .insert(eventRegistrations)
+
+        if (regError) {
+            // Rollback participant insertion if event registration fails
+            await supabase
+                .from('participants')
+                .delete()
+                .in('id', insertedParticipants.map(p => p.id))
+
+            return NextResponse.json(
+                { error: 'Event registration failed: ' + regError.message },
+                { status: 500 }
+            )
+        }
     }
 
     return NextResponse.json({
         success: true,
-        message: `Registered ${participants.length} participants for ${selected_events.length} events`,
+        message: `Registered ${participants.length} participants${selected_events?.length ? ` for ${selected_events.length} events` : ''}`,
         data: {
             transaction_id: txn_id,
             total_amount: amount,
             primary_contact: {
                 email: primary_contact.email,
-                organization: primary_contact.organization
+                organization: primary_contact.organization,
+                participant_category: primary_contact.participant_category
             }
         }
     })
