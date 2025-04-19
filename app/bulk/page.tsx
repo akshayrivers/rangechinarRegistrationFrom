@@ -3,6 +3,31 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import QRCode from "react-qr-code";
+import { z } from "zod";
+
+const registrationSchema = z.object({
+  first_name: z.string().min(1, "First name is required"),
+  last_name: z.string().min(1, "Last name is required"),
+  email: z.string().email("Invalid email"),
+  phone: z
+    .string()
+    .length(10, "Phone number must be only 10 digits")
+    .regex(/^\d+$/, "Phone must contain only numbers")
+    .transform((val) => Number(val)),
+  organization: z.string().min(1, "Organization is required"),
+  state: z.string().min(1, "State is required"),
+  gender: z.string().min(1, "Gender is required"),
+  is_nit_student: z.boolean(),
+  participant_category: z.string().optional(),
+  selected_events: z
+    .array(z.string()),
+    
+  agree_to_rules: z.boolean().refine(val => val === true, {
+    message: "You must agree to the event rules"
+  })
+});
+
+type PrimaryContactRegistrationData = z.input<typeof registrationSchema>;
 
 interface Event {
   id: string | number;
@@ -47,6 +72,8 @@ export default function BulkRegistration() {
   const [activeDay, setActiveDay] = useState("1");
   const [filteredEvents, setFilteredEvents] = useState<Event[]>([]);
 
+  const [showRules, setShowRules] = useState(false);
+
   // Fee calculation
   const [feePerParticipant, setFeePerParticipant] = useState(0);
   const [entryFee, setEntryFee] = useState(0);
@@ -54,15 +81,18 @@ export default function BulkRegistration() {
   const [totalFee, setTotalFee] = useState(0);
 
   // Primary contact info
-  const [primary, setPrimary] = useState<PrimaryContact>({
+  const [primary, setPrimary] = useState<PrimaryContactRegistrationData>({
     first_name: "",
     last_name: "",
     email: "",
-
     phone: "",
-    gender: "",
     organization: "",
     state: "",
+    gender: "",
+    is_nit_student: false,
+    participant_category: "college", // Default to college student
+    selected_events: [],
+    agree_to_rules: false
   });
 
   // Participants
@@ -105,6 +135,15 @@ export default function BulkRegistration() {
     );
   }, [categoryFilter, events, activeDay]);
 
+    // Helper function to check if an event is a haunted house event
+    const isHauntedHouseEvent = (event: Event) => {
+      return event.name.toLowerCase().includes("haunted house");
+    };
+
+
+    
+    
+
   // Fee calculation logic
   useEffect(() => {
     if (selectedEvents.length === 0) {
@@ -115,13 +154,32 @@ export default function BulkRegistration() {
       return;
     }
 
-    // For demonstration, use college student fee for everyone
+    // Get selected events
     const selectedEventObjs = events.filter((event) =>
-      selectedEvents.includes(String(event.id))
+      primary.selected_events.includes(String(event.id))
     );
-    const newEventsFee = selectedEventObjs.reduce((sum, ev) => sum + ev.fee, 0);
-    const newEntryFee =
-      participantCategories.find((cat) => cat.id === "college")?.fee || 29;
+    
+    // Initialize event fees
+    let newEventsFee = 0;
+    let newEntryFee = 0;
+    
+    if (primary.is_nit_student) {
+      // For NIT students: Charge for Workshop category AND Haunted House events
+      newEventsFee = selectedEventObjs
+        .filter(event => event.category === "Workshop" || isHauntedHouseEvent(event))
+        .reduce((sum, ev) => sum + ev.fee, 0);
+      // NIT students don't pay entry fee
+      newEntryFee = 0;
+    } else {
+      // For non-NIT participants: Charge for event fees
+      newEventsFee = selectedEventObjs.reduce((sum, ev) => sum + ev.fee, 0);
+      
+      // CHANGED: Always charge entry fee for non-NIT students
+      const selectedCategory = participantCategories.find(cat => cat.id === primary.participant_category);
+      newEntryFee = selectedCategory ? selectedCategory.fee : 29; // Default to college student fee
+    }
+
+
     const fee = newEventsFee + newEntryFee;
     setEventsFee(newEventsFee);
     setEntryFee(newEntryFee);
@@ -138,6 +196,10 @@ export default function BulkRegistration() {
       setUpiLink("");
     }
   }, [selectedEvents, events, totalParticipants]);
+
+  const handleInput = (key: keyof PrimaryContactRegistrationData, value: string | boolean) => {
+    setPrimary((prev) => ({ ...prev, [key]: value }));
+  };
 
   // Add participant
   const addParticipant = () => {
@@ -351,6 +413,37 @@ export default function BulkRegistration() {
               className="w-full border border-gray-300 rounded-lg px-3 py-2"
               placeholder="State"
             />
+          </div>
+          <div className="flex flex-col sm:flex-row items-start sm:items-center">
+            <div className="flex items-center mr-6 mb-2 sm:mb-0">
+              <input
+                type="checkbox"
+                id="is_nit_student"
+                checked={primary.is_nit_student}
+                onChange={(e) => handleInput("is_nit_student", e.target.checked)}
+                className="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500 border-gray-300 mr-2"
+              />
+              <label htmlFor="is_nit_student" className="text-sm font-medium text-gray-700">
+                NIT Srinagar Student 
+              </label>
+            </div>
+            
+            {/* Participant Category Dropdown - Only show when not an NIT student */}
+            {!primary.is_nit_student && (
+              <div className="w-full">
+                <select
+                  value={primary.participant_category}
+                  onChange={(e) => handleInput("participant_category", e.target.value)}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-transparent transition-all text-sm"
+                >
+                  {participantCategories.map((category) => (
+                    <option key={category.id} value={category.id}>
+                      {category.name} - ₹{category.fee}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
           </div>
         </div>
       </div>
