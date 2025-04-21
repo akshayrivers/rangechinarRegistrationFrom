@@ -19,6 +19,10 @@ interface RegistrationData {
   total_fee: number;
   entry_fee: number;
   events_fee: number;
+  attend_day1: boolean;
+  attend_day2: boolean;
+
+
 }
 
 export default function PaymentPage() {

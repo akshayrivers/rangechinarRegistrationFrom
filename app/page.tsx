@@ -18,9 +18,9 @@ const registrationSchema = z.object({
   gender: z.string().min(1, "Gender is required"),
   is_nit_student: z.boolean(),
   participant_category: z.string().optional(),
-  selected_events: z
-    .array(z.string()),
-    
+  selected_events: z.array(z.string()),
+  attend_day1: z.boolean(),
+  attend_day2: z.boolean(),
   agree_to_rules: z.boolean().refine(val => val === true, {
     message: "You must agree to the event rules"
   })
@@ -68,6 +68,8 @@ export default function HomePage() {
     is_nit_student: false,
     participant_category: "college", // Default to college student
     selected_events: [],
+    attend_day1: true, // Default to attending day 1
+    attend_day2: false,
     agree_to_rules: false
   });
 
@@ -84,6 +86,52 @@ export default function HomePage() {
   const isHauntedHouseEvent = (event: Event) => {
     return event.name.toLowerCase().includes("haunted house");
   };
+
+  // Check if selected events are from days the user hasn't selected
+  useEffect(() => {
+    // If user deselects a day, automatically deselect events from that day
+    if (!form.attend_day1 || !form.attend_day2) {
+      const updatedSelectedEvents = form.selected_events.filter(eventId => {
+        const event = events.find(e => String(e.id) === eventId);
+        if (!event) return false;
+        
+        // Keep event if it's on a day the user is attending
+        if (form.attend_day1 && event.day.includes("1")) return true;
+        if (form.attend_day2 && event.day.includes("2")) return true;
+        return false;
+      });
+      
+      if (updatedSelectedEvents.length !== form.selected_events.length) {
+        setForm(prev => ({
+          ...prev,
+          selected_events: updatedSelectedEvents
+        }));
+      }
+    }
+  }, [form.attend_day1, form.attend_day2, events]);
+
+  // Auto-select days if user selects events from those days
+  useEffect(() => {
+    let needsDay1 = false;
+    let needsDay2 = false;
+
+    form.selected_events.forEach(eventId => {
+      const event = events.find(e => String(e.id) === eventId);
+      if (!event) return;
+
+      if (event.day.includes("1")) needsDay1 = true;
+      if (event.day.includes("2")) needsDay2 = true;
+    });
+
+    // Auto-update day selection if needed
+    if ((needsDay1 && !form.attend_day1) || (needsDay2 && !form.attend_day2)) {
+      setForm(prev => ({
+        ...prev,
+        attend_day1: needsDay1 ? true : prev.attend_day1,
+        attend_day2: needsDay2 ? true : prev.attend_day2
+      }));
+    }
+  }, [form.selected_events, events]);
 
   // Calculate fees whenever relevant form fields change
   useEffect(() => {
@@ -107,17 +155,20 @@ export default function HomePage() {
       // For non-NIT participants: Charge for event fees
       newEventsFee = selectedEventObjs.reduce((sum, ev) => sum + ev.fee, 0);
       
-      // CHANGED: Always charge entry fee for non-NIT students
+      // Charge entry fee for each day selected
       const selectedCategory = participantCategories.find(cat => cat.id === form.participant_category);
-      newEntryFee = selectedCategory ? selectedCategory.fee : 29; // Default to college student fee
+      const dailyEntryFee = selectedCategory ? selectedCategory.fee : 29; // Default to college student fee
+      
+      if (form.attend_day1) newEntryFee += dailyEntryFee;
+      if (form.attend_day2) newEntryFee += dailyEntryFee;
     }
     
     setEventsFee(newEventsFee);
     setEntryFee(newEntryFee);
     setTotalFee(newEventsFee + newEntryFee);
-  }, [form.selected_events, form.is_nit_student, form.participant_category, events]);
+  }, [form.selected_events, form.is_nit_student, form.participant_category, form.attend_day1, form.attend_day2, events]);
 
-  const handleInput = (key: keyof RegistrationData, value: string | boolean) => {
+  const handleInput = (key: keyof RegistrationData, value: any) => {
     setForm((prev) => ({ ...prev, [key]: value }));
   };
 
@@ -141,6 +192,12 @@ export default function HomePage() {
   };
 
   const handleSubmit = () => {
+    // Validate that at least one day is selected
+    if (!form.attend_day1 && !form.attend_day2) {
+      alert("Please select at least one day to attend");
+      return;
+    }
+
     const result = registrationSchema.safeParse(form);
 
     if (!result.success) {
@@ -196,7 +253,7 @@ export default function HomePage() {
           <p className="font-medium text-indigo-700 mb-1">Fee Policy for External Participants:</p>
           <ul className="list-disc pl-5 space-y-1">
             <li>Event registration: Regular event fees apply</li>
-            <li>Entry fee: <span className="font-medium">Required for all external participants</span></li>
+            <li>Entry fee: <span className="font-medium">Required for each day attending ({form.attend_day1 && form.attend_day2 ? "both days" : "one day"})</span></li>
           </ul>
         </div>
       );
@@ -343,6 +400,47 @@ export default function HomePage() {
           </div>
         </div>
 
+        {/* Day Selection */}
+        <div className="mt-4 p-4 bg-indigo-50 rounded-lg">
+          <h3 className="text-lg font-medium text-indigo-800 mb-3">
+            Select Days to Attend
+          </h3>
+          <div className="flex flex-wrap gap-4">
+            <label className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                checked={form.attend_day1}
+                onChange={(e) => handleInput("attend_day1", e.target.checked)}
+                className="w-5 h-5 text-indigo-600 rounded focus:ring-indigo-500 border-gray-300"
+              />
+              <span className="font-medium">Day 1</span>
+              {!form.is_nit_student && (
+                <span className="text-sm text-gray-600 ml-1">
+                  (₹{participantCategories.find(cat => cat.id === form.participant_category)?.fee || 29} entry fee)
+                </span>
+              )}
+            </label>
+            
+            <label className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                checked={form.attend_day2}
+                onChange={(e) => handleInput("attend_day2", e.target.checked)}
+                className="w-5 h-5 text-indigo-600 rounded focus:ring-indigo-500 border-gray-300"
+              />
+              <span className="font-medium">Day 2</span>
+              {!form.is_nit_student && (
+                <span className="text-sm text-gray-600 ml-1">
+                  (₹{participantCategories.find(cat => cat.id === form.participant_category)?.fee || 29} entry fee)
+                </span>
+              )}
+            </label>
+          </div>
+          {(!form.attend_day1 && !form.attend_day2) && (
+            <p className="text-red-500 text-sm mt-2">Please select at least one day to attend</p>
+          )}
+        </div>
+
         {/* Fee Explanation */}
         {getFeeExplanation()}
       </section>
@@ -375,7 +473,7 @@ export default function HomePage() {
                   : "text-gray-500 hover:text-gray-700"
               }`}
             >
-              Day 1
+              Day 1 {!form.attend_day1 && <span className="text-amber-500 text-xs">(Not Attending)</span>}
             </button>
             <button
               onClick={() => switchDay("2")}
@@ -385,7 +483,7 @@ export default function HomePage() {
                   : "text-gray-500 hover:text-gray-700"
               }`}
             >
-              Day 2
+              Day 2 {!form.attend_day2 && <span className="text-amber-500 text-xs">(Not Attending)</span>}
             </button>
           </div>
 
@@ -397,13 +495,20 @@ export default function HomePage() {
                 event.category !== "Workshop" && 
                 !isHauntedHouseEvent(event);
               
+              // Check if this event is from a day the user isn't attending
+              const eventDay = event.day;
+              const dayNotSelected = (eventDay.includes("1") && !form.attend_day1) || 
+                                     (eventDay.includes("2") && !form.attend_day2);
+              
               return (
                 <label
                   key={eventId}
                   className={`border rounded-xl p-4 cursor-pointer transition-all duration-200 hover:shadow-md ${
                     form.selected_events.includes(eventId)
                       ? "bg-indigo-50 border-indigo-300 ring-2 ring-indigo-200"
-                      : "bg-white border-gray-200 hover:border-indigo-200"
+                      : dayNotSelected 
+                        ? "bg-gray-100 border-gray-200 opacity-60" 
+                        : "bg-white border-gray-200 hover:border-indigo-200"
                   }`}
                 >
                   <div className="flex items-start gap-3">
@@ -423,15 +528,23 @@ export default function HomePage() {
                       <p className="text-sm text-gray-500">
                         <span className="font-medium">Category:</span> {event.sub_category}
                       </p>
-                      <p className="text-sm font-medium text-indigo-600">
-                        Fee: {isFreeForNIT ? (
-                          <span className="text-green-600">Free for NIT Students</span>
-                        ) : (
-                          <span>₹{event.fee}</span>
-                        )}
-                      </p>
-                      {/* Add special flag for Haunted House events to ensure they're marked correctly */}
-                      {isHauntedHouseEvent(event) && form.is_nit_student}
+                      <div className="flex items-center gap-2">
+                        <p className="text-sm font-medium text-indigo-600">
+                          Fee: {isFreeForNIT ? (
+                            <span className="text-green-600">Free for NIT Students</span>
+                          ) : (
+                            <span>₹{event.fee}</span>
+                          )}
+                        </p>
+                        <span className="text-xs px-2 py-0.5 bg-indigo-100 text-indigo-800 rounded-full">
+                          Day {event.day}
+                        </span>
+                      </div>
+                      {dayNotSelected && (
+                        <p className="text-xs text-amber-600 mt-1">
+                          Note: Selecting this event will add Day {event.day} to your registration
+                        </p>
+                      )}
                     </div>
                   </div>
                 </label>
@@ -487,7 +600,7 @@ export default function HomePage() {
             <p className="text-2xl font-bold">₹{entryFee}</p>
             {!form.is_nit_student && (
               <p className="text-xs text-amber-600 mt-1">
-                *Required for all external participants
+                *{form.attend_day1 && form.attend_day2 ? "Both days" : "One day"}
               </p>
             )}
           </div>
