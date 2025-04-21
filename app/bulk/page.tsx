@@ -24,6 +24,8 @@ const registrationSchema = z.object({
   agree_to_rules: z.boolean().refine((val) => val === true, {
     message: "You must agree to the event rules",
   }),
+  attend_day1: z.boolean().optional(),
+  attend_day2: z.boolean().optional(),
 });
 
 type PrimaryContactRegistrationData = z.input<typeof registrationSchema>;
@@ -52,6 +54,8 @@ interface PrimaryContact {
   gender: string;
   organization: string;
   state: string;
+  attend_day1: boolean;
+  attend_day2: boolean;
 }
 
 const participantCategories = [
@@ -92,6 +96,8 @@ export default function BulkRegistration() {
     participant_category: "college", // Default to college student
     selected_events: [],
     agree_to_rules: false,
+    attend_day1: true,
+    attend_day2: false,
   });
 
   // Participants
@@ -123,6 +129,30 @@ export default function BulkRegistration() {
       });
   }, []);
 
+  // Auto-select days based on selected events
+  useEffect(() => {
+    if (selectedEvents.length > 0) {
+      // Check if any selected event requires day1 or day2
+      let needsDay1 = false;
+      let needsDay2 = false;
+
+      selectedEvents.forEach(eventId => {
+        const event = events.find(e => String(e.id) === eventId);
+        if (!event) return;
+
+        if (event.day.includes("1")) needsDay1 = true;
+        if (event.day.includes("2")) needsDay2 = true;
+      });
+
+      // Update day selection based on events
+      setPrimary(prev => ({
+        ...prev,
+        attend_day1: needsDay1 ? true : prev.attend_day1,
+        attend_day2: needsDay2 ? true : prev.attend_day2
+      }));
+    }
+  }, [selectedEvents, events]);
+
   // Filter events based on selected day and category
   useEffect(() => {
     setFilteredEvents(
@@ -139,18 +169,28 @@ export default function BulkRegistration() {
     return event.name.toLowerCase().includes("haunted house");
   };
 
-  // Fee calculation logic
+  // Fee calculation logic with day-based pricing
   useEffect(() => {
     // Initialize event fees
     let newEventsFee = 0;
     let newEntryFee = 0;
-
-    // Calculate entry fee based on participant category (only for non-NIT students)
+    
+    // Calculate entry fee based on participant category and selected days
     if (!primary.is_nit_student) {
       const selectedCategory = participantCategories.find(
         (cat) => cat.id === primary.participant_category
       );
-      newEntryFee = selectedCategory ? selectedCategory.fee : 29; // Default to college student fee
+      
+      if (selectedCategory) {
+        // Calculate entry fee based on which days are selected
+        if (primary.attend_day1 && primary.attend_day2) {
+          // Both days selected - charge full fee (2x)
+          newEntryFee = selectedCategory.fee * 2;
+        } else if (primary.attend_day1 || primary.attend_day2) {
+          // One day selected - charge single day fee (1x)
+          newEntryFee = selectedCategory.fee;
+        }
+      }
     }
 
     // Calculate event fees if events are selected
@@ -194,6 +234,8 @@ export default function BulkRegistration() {
     totalParticipants,
     primary.is_nit_student,
     primary.participant_category,
+    primary.attend_day1,
+    primary.attend_day2,
   ]);
 
   const handleInput = (
@@ -224,6 +266,26 @@ export default function BulkRegistration() {
   // Remove participant
   const removeParticipant = (idx: number) => {
     setParticipants(participants.filter((_, i) => i !== idx));
+  };
+
+  // Handle event selection
+  const handleEventSelection = (eventId: string) => {
+    const event = events.find(e => String(e.id) === eventId);
+    if (!event) return;
+    
+    // Get current selected events
+    let updatedSelectedEvents;
+    if (selectedEvents.includes(eventId)) {
+      // Remove the event if it's already selected
+      updatedSelectedEvents = selectedEvents.filter(id => id !== eventId);
+    } else {
+      // Add the event if it's not selected
+      updatedSelectedEvents = [...selectedEvents, eventId];
+    }
+    
+    // Update selected events
+    setSelectedEvents(updatedSelectedEvents);
+    setPrimary(prev => ({ ...prev, selected_events: updatedSelectedEvents }));
   };
 
   // Submit bulk registration (includes primary contact as participant)
@@ -275,6 +337,8 @@ export default function BulkRegistration() {
           txn_id: totalFee > 0 ? txnId : "FREE",
           amount: totalFee,
           selected_events: selectedEvents,
+          attend_day1: primary.attend_day1,
+          attend_day2: primary.attend_day2,
         }),
       });
 
@@ -447,12 +511,62 @@ export default function BulkRegistration() {
                 >
                   {participantCategories.map((category) => (
                     <option key={category.id} value={category.id}>
-                      {category.name} - ₹{category.fee}
+                      {category.name} - ₹{category.fee} per day
                     </option>
                   ))}
                 </select>
               </div>
             )}
+          </div>
+          
+          {/* Day selection checkboxes */}
+          <div className="col-span-1 sm:col-span-2 mt-3">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+              <p className="text-sm font-medium text-gray-700">
+                Select Days to Attend:
+              </p>
+              <div className="flex gap-4">
+                <div className="flex items-center">
+                  <input
+                    type="checkbox"
+                    id="attend_day1"
+                    checked={primary.attend_day1}
+                    onChange={(e) =>
+                      handleInput("attend_day1", e.target.checked)
+                    }
+                    className="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500 border-gray-300 mr-2"
+                  />
+                  <label
+                    htmlFor="attend_day1"
+                    className="text-sm font-medium text-gray-700"
+                  >
+                    Day 1
+                  </label>
+                </div>
+                <div className="flex items-center">
+                  <input
+                    type="checkbox"
+                    id="attend_day2"
+                    checked={primary.attend_day2}
+                    onChange={(e) =>
+                      handleInput("attend_day2", e.target.checked)
+                    }
+                    className="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500 border-gray-300 mr-2"
+                  />
+                  <label
+                    htmlFor="attend_day2"
+                    className="text-sm font-medium text-gray-700"
+                  >
+                    Day 2
+                  </label>
+                </div>
+              </div>
+              <div className="text-sm text-indigo-600">
+                {primary.attend_day1 && primary.attend_day2 ? 
+                  "Entry fee for both days: 2x rate" : 
+                  "Entry fee for one day: base rate"}
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -498,6 +612,7 @@ export default function BulkRegistration() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
           {filteredEvents.map((event) => {
             const eventId = String(event.id);
+            
             return (
               <label
                 key={eventId}
@@ -512,13 +627,7 @@ export default function BulkRegistration() {
                     type="checkbox"
                     className="mt-1 w-4 h-4 text-indigo-600 rounded"
                     checked={selectedEvents.includes(eventId)}
-                    onChange={() => {
-                      setSelectedEvents((prev) =>
-                        prev.includes(eventId)
-                          ? prev.filter((e) => e !== eventId)
-                          : [...prev, eventId]
-                      );
-                    }}
+                    onChange={() => handleEventSelection(eventId)}
                   />
                   <div>
                     <h3 className="font-bold text-lg text-indigo-900">
@@ -534,6 +643,10 @@ export default function BulkRegistration() {
                     <p className="text-sm font-medium text-indigo-600">
                       Fee: ₹{event.fee}
                     </p>
+                    <p className="text-xs text-gray-500 mt-1">
+                      Day: {event.day.includes("1") && event.day.includes("2") ? "Both days" : 
+                            event.day.includes("1") ? "Day 1" : "Day 2"}
+                    </p>
                   </div>
                 </div>
               </label>
@@ -543,7 +656,7 @@ export default function BulkRegistration() {
         <div className="mt-4 bg-indigo-50 p-3 rounded-lg">
           <p className="text-sm text-indigo-600">
             All participants in this bulk registration will be registered for
-            the same events.
+            the same events. Days will be auto-selected based on your event choices.
           </p>
         </div>
       </section>

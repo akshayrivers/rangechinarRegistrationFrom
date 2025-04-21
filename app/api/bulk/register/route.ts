@@ -7,7 +7,9 @@ export async function POST(req: Request) {
         participants,
         txn_id,
         amount,
-        selected_events
+        selected_events,
+        attend_day1,
+        attend_day2,
     } = await req.json()
 
     // Validate required fields
@@ -48,7 +50,7 @@ export async function POST(req: Request) {
         )
     }
 
-    // Prepare participants payload - remove is_nit_student field
+    // Prepare participants payload with correct attendance data
     const insertPayload = participants.map((p) => ({
         first_name: p.first_name,
         last_name: p.last_name,
@@ -60,7 +62,9 @@ export async function POST(req: Request) {
         txn_id,
         amount,
         Bulk: true,
-        participant_category: primary_contact.participant_category
+        participant_category: primary_contact.participant_category,
+        attend_day1: primary_contact.attend_day1,  // Use primary_contact attendance data
+        attend_day2: primary_contact.attend_day2,  // Use primary_contact attendance data
     }))
 
     // Insert participants
