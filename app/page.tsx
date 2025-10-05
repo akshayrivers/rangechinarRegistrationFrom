@@ -76,11 +76,19 @@ export default function HomePage() {
   useEffect(() => {
     fetch("/api/events")
       .then((res) => res.json())
-      .then((data: Event[]) => {
-        setEvents(data);
-        setFilteredEvents(data.filter(event => event.day.includes(activeDay)));
+      .then((data) => {
+        const eventsArray = Array.isArray(data) ? data : data.events || [];
+        
+        setEvents(eventsArray);
+        setFilteredEvents(eventsArray.filter((event:any) => event.day.includes(activeDay)));
+      })
+      .catch((err) => {
+        console.error("Error fetching events:", err);
+        setEvents([]);
+        setFilteredEvents([]);
       });
   }, []);
+  
 
   // Helper function to check if an event is a haunted house event
   const isHauntedHouseEvent = (event: Event) => {
