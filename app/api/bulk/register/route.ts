@@ -1,123 +1,94 @@
-import { supabase } from '@/lib/supabase'
-import { NextResponse } from 'next/server'
+import { NextResponse } from "next/server";
+import { createClient } from "@supabase/supabase-js";
+
+// --- Initialize Supabase ---
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
+
+// --- Upload to Cloudinary ---
+const uploadToCloudinary = async (file: File | Blob) => {
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("upload_preset", process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET!);
+
+  const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME!;
+  const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
+    method: "POST",
+    body: formData,
+  });
+
+  const data = await res.json();
+  if (!data.secure_url) throw new Error("Cloudinary upload failed");
+  return data.secure_url;
+};
 
 export async function POST(req: Request) {
+  try {
     const {
-        primary_contact,
-        participants,
-        txn_id,
-        amount,
-        selected_events,
-        attend_day1,
-        attend_day2,
-    } = await req.json()
+      primary_contact,
+      participants,
+      txn_id,
+      amount,
+      selected_events,
+      attend_day1,
+      attend_day2,
+    } = await req.json();
 
-    // Validate required fields
-    if (!primary_contact?.email || !primary_contact?.organization || !primary_contact?.participant_category) {
-        return NextResponse.json(
-            { error: 'Primary contact email, organization, and participant category are required.' },
-            { status: 400 }
-        )
+    // --- Basic validation ---
+    if (!primary_contact || !participants) {
+      return NextResponse.json({ error: "Invalid data" }, { status: 400 });
     }
 
-    if (!participants || !Array.isArray(participants) || participants.length === 0) {
-        return NextResponse.json({ error: 'No participants provided.' }, { status: 400 })
-    }
+    // --- Upload photos for all participants (including primary) ---
+    const allParticipants = [
+      primary_contact,
+      ...participants,
+    ];
 
-    if (!selected_events || !Array.isArray(selected_events) || selected_events.length === 0) {
-        return NextResponse.json({ error: 'No events selected.' }, { status: 400 })
-    }
+    const participantsWithPhotos = await Promise.all(
+      allParticipants.map(async (p: any) => ({
+        ...p,
+        photo_url: p.photo_url || (p.photo ? await uploadToCloudinary(p.photo) : null),
+      }))
+    );
 
-    // Check for existing bulk registration
-    const { data: existingEmail, error: emailError } = await supabase
-        .from('participants')
-        .select('id')
-        .eq('email', primary_contact.email)
-        .eq('Bulk', true)
-        .maybeSingle()
-
-    if (emailError) {
-        return NextResponse.json(
-            { error: 'Error checking existing registration: ' + emailError.message },
-            { status: 500 }
-        )
-    }
-
-    if (existingEmail) {
-        return NextResponse.json(
-            { error: 'Bulk registration already exists for this email.' },
-            { status: 400 }
-        )
-    }
-
-    // Prepare participants payload with correct attendance data
-    const insertPayload = participants.map((p) => ({
+    // --- Insert into Supabase ---
+    const { data, error } = await supabase.from("participants").insert(
+      participantsWithPhotos.map((p: any) => ({
         first_name: p.first_name,
         last_name: p.last_name,
-        phone: primary_contact.phone.toString(),
-        email: primary_contact.email,
-        organization: primary_contact.organization,
-        state: primary_contact.state,
-        gender: p.gender,
+        email: p.email || primary_contact.email || null,
+        phone: p.phone || primary_contact.phone || null,
+        organization: p.organization || primary_contact.organization || null,
+        state: p.state || primary_contact.state || null,
         txn_id,
+        gender: p.gender,
+        nit: primary_contact.is_nit_student || false,
         amount,
         Bulk: true,
-        participant_category: primary_contact.participant_category,
-        attend_day1: primary_contact.attend_day1,  // Use primary_contact attendance data
-        attend_day2: primary_contact.attend_day2,  // Use primary_contact attendance data
-    }))
+        participant_category: primary_contact.participant_category || null,
+        attend_day1,
+        attend_day2,
+        vendor: false,
+        avatar: null,
+        photo_url: p.photo_url || null,
+      }))
+    );
 
-    // Insert participants
-    const { data: insertedParticipants, error: insertError } = await supabase
-        .from('participants')
-        .insert(insertPayload)
-        .select('id')
-
-    if (insertError || !insertedParticipants) {
-        return NextResponse.json(
-            { error: insertError?.message ?? 'Failed to insert participants' },
-            { status: 500 }
-        )
-    }
-
-    // Create event registrations only if events are selected
-    if (selected_events && selected_events.length > 0) {
-        const eventRegistrations = insertedParticipants.flatMap(participant =>
-            selected_events.map(event_id => ({
-                event_id,
-                participant_id: participant.id
-            }))
-        )
-
-        const { error: regError } = await supabase
-            .from('event_registrations')
-            .insert(eventRegistrations)
-
-        if (regError) {
-            // Rollback participant insertion if event registration fails
-            await supabase
-                .from('participants')
-                .delete()
-                .in('id', insertedParticipants.map(p => p.id))
-
-            return NextResponse.json(
-                { error: 'Event registration failed: ' + regError.message },
-                { status: 500 }
-            )
-        }
+    if (error) {
+      console.error("Supabase insert error:", error);
+      return NextResponse.json({ error: error.message }, { status: 400 });
     }
 
     return NextResponse.json({
-        success: true,
-        message: `Registered ${participants.length} participants${selected_events?.length ? ` for ${selected_events.length} events` : ''}`,
-        data: {
-            transaction_id: txn_id,
-            total_amount: amount,
-            primary_contact: {
-                email: primary_contact.email,
-                organization: primary_contact.organization,
-                participant_category: primary_contact.participant_category
-            }
-        }
-    })
+      success: true,
+      message: `Registered ${participantsWithPhotos.length} participants successfully.`,
+      data,
+    });
+  } catch (err: any) {
+    console.error("Bulk registration error:", err);
+    return NextResponse.json({ error: err.message || "Server error" }, { status: 500 });
+  }
 }
