@@ -1,5 +1,7 @@
 // app/api/register/route.ts
-import { supabase } from "@/lib/supabase";
+
+import { supabaseServer as supabase } from "@/lib/supabaseServer";
+
 import { NextResponse } from "next/server";
 import { promises as fs } from "fs";
 import { uploadOnCloudinary } from "./cloudinary";
