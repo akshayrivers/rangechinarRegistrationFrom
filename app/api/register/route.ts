@@ -1,4 +1,3 @@
-// app/api/register/route.ts
 import { supabase } from '@/lib/supabase'
 import { NextResponse } from 'next/server'
 
@@ -18,10 +17,10 @@ export async function POST(req: Request) {
         attend_day1,
         attend_day2,
         participant_category,
-        
+        photo_url, // ✅ new field
     } = await req.json()
 
-    // ✅ Check if UID/email already registered
+    // ✅ Check if email already registered
     const { data: existingEmail } = await supabase
         .from('participants')
         .select('id')
@@ -35,7 +34,7 @@ export async function POST(req: Request) {
         )
     }
 
-    // ✅ Insert participant including UID
+    // ✅ Insert participant including photo URL
     const { data: participant, error: insertError } = await supabase
         .from('participants')
         .insert([
@@ -47,13 +46,13 @@ export async function POST(req: Request) {
                 organization,
                 state,
                 gender,
-                nit: is_nit_student, // Renaming is_nit_student to nit as required
+                nit: is_nit_student,
                 txn_id,
                 amount,
                 attend_day1,
                 attend_day2,
                 participant_category,
-                
+                photo_url, // ✅ added here
             },
         ])
         .select()
@@ -66,7 +65,7 @@ export async function POST(req: Request) {
         )
     }
 
-    // ✅ Register event entries
+    // ✅ Register selected events
     const registrations = selected_events.map((event_id: string) => ({
         event_id,
         participant_id: participant.id,
@@ -80,14 +79,14 @@ export async function POST(req: Request) {
         return NextResponse.json({ error: regError.message }, { status: 500 })
     }
 
-    // Create a summary of days attending for the response
-    let daysAttending = "";
+    // ✅ Days attending summary
+    let daysAttending = ""
     if (attend_day1 && attend_day2) {
-        daysAttending = "both days";
+        daysAttending = "both days"
     } else if (attend_day1) {
-        daysAttending = "day 1";
+        daysAttending = "day 1"
     } else if (attend_day2) {
-        daysAttending = "day 2";
+        daysAttending = "day 2"
     }
 
     return NextResponse.json({
@@ -97,7 +96,7 @@ export async function POST(req: Request) {
             name: `${first_name} ${last_name}`,
             events_registered: selected_events.length,
             attending: daysAttending,
-            total_amount: amount
+            total_amount: amount,
         },
     })
 }
