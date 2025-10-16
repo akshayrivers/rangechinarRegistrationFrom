@@ -738,5 +738,5 @@
 //   );
 // }
 export default function Page() {
-  return <div style={{ height: '100px' }}></div>
+  return <div style={{ height: '100px' }}>Registartion is closed....!</div>
 }
