@@ -737,3 +737,6 @@
 //     </main>
 //   );
 // }
+export default function Page() {
+  return <div style={{ height: '100px' }}></div>
+}
