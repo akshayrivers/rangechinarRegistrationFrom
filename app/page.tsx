@@ -163,12 +163,15 @@ export default function HomePage() {
       // For non-NIT participants: Charge for event fees
       newEventsFee = selectedEventObjs.reduce((sum, ev) => sum + ev.fee, 0);
       
-      // Charge entry fee for each day selected
+      // --- (MODIFIED) ---
+      // Charge a SINGLE entry fee if attending at least one day
       const selectedCategory = participantCategories.find(cat => cat.id === form.participant_category);
-      const dailyEntryFee = selectedCategory ? selectedCategory.fee : 29; // Default to college student fee
+      const singleEntryFee = selectedCategory ? selectedCategory.fee : 29; // Default to college student fee
       
-      if (form.attend_day1) newEntryFee += dailyEntryFee;
-      if (form.attend_day2) newEntryFee += dailyEntryFee;
+      if (form.attend_day1 || form.attend_day2) {
+        newEntryFee = singleEntryFee;
+      }
+      // --- (END MODIFICATION) ---
     }
     
     setEventsFee(newEventsFee);
@@ -256,15 +259,18 @@ export default function HomePage() {
         </div>
       );
     } else {
+      // --- (MODIFIED) ---
+      const oneTimeFee = participantCategories.find(cat => cat.id === form.participant_category)?.fee || 29;
       return (
         <div className="mt-2 bg-indigo-50 p-3 rounded-lg text-sm">
           <p className="font-medium text-indigo-700 mb-1">Fee Policy for External Participants:</p>
           <ul className="list-disc pl-5 space-y-1">
             <li>Event registration: Regular event fees apply</li>
-            <li>Entry fee: <span className="font-medium">Required for each day attending ({form.attend_day1 && form.attend_day2 ? "both days" : "one day"})</span></li>
+            <li>Entry fee: <span className="font-medium">A one-time fee of ₹{oneTimeFee} is required if attending one or both days.</span></li>
           </ul>
         </div>
       );
+      // --- (END MODIFICATION) ---
     }
   };
 
@@ -413,6 +419,7 @@ export default function HomePage() {
           <h3 className="text-lg font-medium text-indigo-800 mb-3">
             Select Days to Attend
           </h3>
+          {/* --- (MODIFIED) Removed fee text from labels --- */}
           <div className="flex flex-wrap gap-4">
             <label className="flex items-center space-x-2">
               <input
@@ -422,11 +429,6 @@ export default function HomePage() {
                 className="w-5 h-5 text-indigo-600 rounded focus:ring-indigo-500 border-gray-300"
               />
               <span className="font-medium">Day 1</span>
-              {!form.is_nit_student && (
-                <span className="text-sm text-gray-600 ml-1">
-                  (₹{participantCategories.find(cat => cat.id === form.participant_category)?.fee || 29} entry fee)
-                </span>
-              )}
             </label>
             
             <label className="flex items-center space-x-2">
@@ -437,13 +439,9 @@ export default function HomePage() {
                 className="w-5 h-5 text-indigo-600 rounded focus:ring-indigo-500 border-gray-300"
               />
               <span className="font-medium">Day 2</span>
-              {!form.is_nit_student && (
-                <span className="text-sm text-gray-600 ml-1">
-                  (₹{participantCategories.find(cat => cat.id === form.participant_category)?.fee || 29} entry fee)
-                </span>
-              )}
             </label>
           </div>
+          {/* --- (END MODIFICATION) --- */}
           {(!form.attend_day1 && !form.attend_day2) && (
             <p className="text-red-500 text-sm mt-2">Please select at least one day to attend</p>
           )}
@@ -606,11 +604,13 @@ export default function HomePage() {
           <div className="bg-white bg-opacity-90 rounded-lg p-3 text-gray-900">
             <p className="text-sm text-gray-700">Entry Fee</p>
             <p className="text-2xl font-bold">₹{entryFee}</p>
-            {!form.is_nit_student && (
+            {/* --- (MODIFIED) --- */}
+            {!form.is_nit_student && entryFee > 0 && (
               <p className="text-xs text-amber-600 mt-1">
-                *{form.attend_day1 && form.attend_day2 ? "Both days" : "One day"}
+                *One-time fee
               </p>
             )}
+            {/* --- (END MODIFICATION) --- */}
           </div>
           <div className="bg-white bg-opacity-90 rounded-lg p-3 text-gray-900">
             <p className="text-sm text-gray-700">Total Fee</p>
@@ -656,15 +656,16 @@ export default function HomePage() {
                   </ul>
                 </div>
 
+                {/* --- (MODIFIED) --- */}
                 <div>
                   <h4 className="font-bold text-gray-800 mb-2">Entry Fee Details</h4>
+                  <p className="text-sm text-gray-600 mb-2">The following is a one-time entry fee for external participants, valid for one or both days:</p>
                   <ul className="list-disc pl-5 space-y-2">
                     <li>School Students (till Class 10) – Rs.20</li>
                     <li>College Students (Including Class 11 & 12) – Rs.29</li>
                     <li>NIT alumni – Rs.299</li>
                     <li>Others (With Any govt ID) – Rs.999</li>
-                    <li className="text-amber-700 font-medium">*Entry fee is required for all external participants</li>
-                    <li className="text-green-700 font-medium">*NIT students participate in most events for free, except workshops and haunted house</li>
+                    <li className="text-green-700 font-medium">*NIT students participate in most events for free, except workshops and haunted house (no entry fee).</li>
                   </ul>
                 </div>
 
@@ -673,10 +674,11 @@ export default function HomePage() {
                   <ul className="list-disc pl-5 space-y-2">
                     <li>Participants must wear their bands provided during registration at all times.</li>
                     <li>If participants leave the campus during the event, they must remove the previous band and register and pay again to get a new band.</li>
-                    <li>Each participant should purchase 2 different bands for Day 1 and Day 2.</li>
+                    <li>Participants attending both days will receive separate bands for Day 1 and Day 2 after paying the single entry fee.</li>
                     <li>The institution is not responsible for replacing lost or damaged bands.</li>
                   </ul>
                 </div>
+                {/* --- (END MODIFICATION) --- */}
 
                 <div>
                   <h4 className="font-bold text-gray-800 mb-2">Game Zone Registration</h4>

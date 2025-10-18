@@ -81,7 +81,7 @@ export default function BulkRegistration() {
   const [upiLink, setUpiLink] = useState("");
   const upiId = "jkbmerc00173818@jkb";
 
-  const CLOUDINARY_UPLOAD_PRESET = "Rang-e-chinar-photo"; // Make sure this preset exists in your Cloudinary
+  const CLOUDINARY_UPLOAD_PRESET = "Rang-e-chinar-photo";
   const CLOUDINARY_CLOUD_NAME = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
 
   // --- Load Events ---
@@ -105,11 +105,21 @@ export default function BulkRegistration() {
 
   // --- Fee Calculation ---
   useEffect(() => {
+    // --- (MODIFIED) ---
     const totalParticipants = participants.length + 1;
     const cat = participantCategories.find((c) => c.id === primary.participant_category);
     let baseFee = cat ? cat.fee : 0;
-    if (primary.attend_day1 && primary.attend_day2) baseFee *= 2;
+    
+    // If no days are selected, base fee is 0. Otherwise, it's the one-time fee.
+    // This assumes the primary contact's day selection applies to all.
+    if (!primary.attend_day1 && !primary.attend_day2) {
+      baseFee = 0;
+    }
+    // The line multiplying baseFee by 2 for both days has been REMOVED.
+    
     const fee = baseFee * totalParticipants;
+    // --- (END MODIFICATION) ---
+    
     setTotalFee(fee);
     setUpiLink(
       fee > 0
@@ -124,7 +134,6 @@ export default function BulkRegistration() {
   };
 
   const addParticipant = () => {
-    // --- (MODIFIED) More specific alerts ---
     if (!newParticipant.first_name || !newParticipant.last_name || !newParticipant.gender) {
       alert("Fill all text fields for the participant (First Name, Last Name, Gender).");
       return;
@@ -133,7 +142,6 @@ export default function BulkRegistration() {
       alert("Please upload a photo for this participant.");
       return;
     }
-    // --- (END MODIFIED) ---
     setParticipants([...participants, newParticipant]);
     setNewParticipant({ first_name: "", last_name: "", gender: "", photo: null });
   };
@@ -168,31 +176,25 @@ export default function BulkRegistration() {
 
   // --- Submit Registration ---
   const handleSubmit = async () => {
-    // --- (MODIFIED) Added check for primary photo ---
     if (!primary.photo) {
       alert("Please upload a photo for the Primary Contact.");
       window.scrollTo({ top: 0, behavior: "smooth" }); // Scroll to top
       return;
     }
-    // --- (END MODIFIED) ---
 
     try {
       setIsSubmitting(true);
   
-      // ✅ Include the last participant if fields are filled
       let updatedParticipants = [...participants];
       if (newParticipant.first_name && newParticipant.last_name && newParticipant.gender && newParticipant.photo) {
         updatedParticipants.push(newParticipant);
       }
   
-      // ✅ Upload all photos to Cloudinary
-      // We know primary.photo exists from the check above
       const primaryPhotoUrl = await uploadToCloudinary(primary.photo);
   
       const participantsWithPhotoUrls = await Promise.all(
         updatedParticipants.map(async (p) => {
           if (!p.photo) {
-            // This should not happen if `addParticipant` is used, but it's a good safeguard
             throw new Error(`Photo missing for participant ${p.first_name}`);
           }
           return {
@@ -202,7 +204,6 @@ export default function BulkRegistration() {
         })
       );
   
-      // ✅ Send everything to backend
       const res = await fetch("/api/bulk/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -259,7 +260,6 @@ export default function BulkRegistration() {
           <input placeholder="Organization*" value={primary.organization} onChange={(e) => handlePrimaryInput("organization", e.target.value)} className="border px-3 py-2 rounded-lg" required />
           <input placeholder="State*" value={primary.state} onChange={(e) => handlePrimaryInput("state", e.target.value)} className="border px-3 py-2 rounded-lg" required />
           
-          {/* --- (MODIFIED) Photo input with feedback --- */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Primary Contact Photo*
@@ -275,13 +275,44 @@ export default function BulkRegistration() {
               <p className="text-sm text-red-600 mt-1">Photo is required for primary contact.</p>
             )}
           </div>
-          {/* --- (END MODIFIED) --- */}
+        </div>
+        {/* Day selection for bulk registration */}
+        <div className="mt-4 p-4 bg-indigo-50 rounded-lg">
+          <h3 className="text-lg font-medium text-indigo-800 mb-3">
+            Select Days (Applies to ALL participants)
+          </h3>
+          <p className="text-sm text-indigo-700 mb-2">
+            The one-time entry fee will be calculated based on the days selected here.
+          </p>
+          <div className="flex flex-wrap gap-4">
+            <label className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                checked={primary.attend_day1}
+                onChange={(e) => handlePrimaryInput("attend_day1", e.target.checked)}
+                className="w-5 h-5 text-indigo-600 rounded focus:ring-indigo-500 border-gray-300"
+              />
+              <span className="font-medium">Day 1</span>
+            </label>
+            <label className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                checked={primary.attend_day2}
+                onChange={(e) => handlePrimaryInput("attend_day2", e.target.checked)}
+                className="w-5 h-5 text-indigo-600 rounded focus:ring-indigo-500 border-gray-300"
+              />
+              <span className="font-medium">Day 2</span>
+            </label>
+          </div>
+          {(!primary.attend_day1 && !primary.attend_day2) && (
+            <p className="text-red-500 text-sm mt-2">Please select at least one day for the group to attend</p>
+          )}
         </div>
       </div>
 
       {/* Events */}
       <section className="bg-white p-6 rounded-2xl shadow-lg border border-indigo-100 mb-8">
-        <h2 className="text-xl font-semibold text-indigo-800 mb-4">🎯 Select Events for All Participants</h2>
+        <h2 className="text-xl font-semibold text-indigo-800 mb-4">🎯 Select Events (Applies to ALL participants)</h2>
         <select value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)} className="border px-3 py-2 rounded-lg mb-4">
           {uniqueCategories.map((cat) => <option key={cat}>{cat}</option>)}
         </select>
@@ -319,7 +350,6 @@ export default function BulkRegistration() {
           </select>
           <input type="file" accept="image/*" onChange={(e)=>setNewParticipant({...newParticipant, photo:e.target.files?.[0] || null})} className="border px-3 py-2 rounded-lg text-sm" required />
         </div>
-        {/* --- (MODIFIED) Added feedback for new participant photo --- */}
         {newParticipant.first_name && newParticipant.last_name && newParticipant.gender && !newParticipant.photo && (
           <p className="text-sm text-red-600 mt-2">
             Please upload a photo for {newParticipant.first_name} before adding.
@@ -350,7 +380,6 @@ export default function BulkRegistration() {
           <div className="flex-1">
             <input placeholder="UPI Transaction ID (if applicable)" value={txnId} onChange={(e)=>setTxnId(e.target.value)} className="border px-3 py-2 rounded-lg w-full mb-4" />
             
-            {/* --- (MODIFIED) Submit button disabled state --- */}
             <button 
               onClick={handleSubmit} 
               disabled={isSubmitting || !primary.photo} 
@@ -367,7 +396,6 @@ export default function BulkRegistration() {
                 Please upload the Primary Contact's photo to enable submission.
               </p>
             )}
-            {/* --- (END MODIFIED) --- */}
           </div>
         </div>
       </div>
