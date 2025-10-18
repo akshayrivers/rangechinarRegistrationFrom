@@ -63,6 +63,7 @@ export default function BulkRegistration() {
     selected_events: [],
     attend_day1: true,
     attend_day2: false,
+    photo: null, // Ensure photo is part of initial state
   });
 
   const [participants, setParticipants] = useState<Participant[]>([]);
@@ -70,6 +71,7 @@ export default function BulkRegistration() {
     first_name: "",
     last_name: "",
     gender: "",
+    photo: null,
   });
 
   const [txnId, setTxnId] = useState("");
@@ -79,7 +81,7 @@ export default function BulkRegistration() {
   const [upiLink, setUpiLink] = useState("");
   const upiId = "jkbmerc00173818@jkb";
 
-  const CLOUDINARY_UPLOAD_PRESET = "Rang-e-chinar-photo";
+  const CLOUDINARY_UPLOAD_PRESET = "Rang-e-chinar-photo"; // Make sure this preset exists in your Cloudinary
   const CLOUDINARY_CLOUD_NAME = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
 
   // --- Load Events ---
@@ -122,12 +124,18 @@ export default function BulkRegistration() {
   };
 
   const addParticipant = () => {
-    if (!newParticipant.first_name || !newParticipant.last_name || !newParticipant.gender || !newParticipant.photo) {
-      alert("Fill all fields and upload a photo for the participant.");
+    // --- (MODIFIED) More specific alerts ---
+    if (!newParticipant.first_name || !newParticipant.last_name || !newParticipant.gender) {
+      alert("Fill all text fields for the participant (First Name, Last Name, Gender).");
       return;
     }
+    if (!newParticipant.photo) {
+      alert("Please upload a photo for this participant.");
+      return;
+    }
+    // --- (END MODIFIED) ---
     setParticipants([...participants, newParticipant]);
-    setNewParticipant({ first_name: "", last_name: "", gender: "", photo: undefined });
+    setNewParticipant({ first_name: "", last_name: "", gender: "", photo: null });
   };
 
   const removeParticipant = (idx: number) => {
@@ -160,6 +168,14 @@ export default function BulkRegistration() {
 
   // --- Submit Registration ---
   const handleSubmit = async () => {
+    // --- (MODIFIED) Added check for primary photo ---
+    if (!primary.photo) {
+      alert("Please upload a photo for the Primary Contact.");
+      window.scrollTo({ top: 0, behavior: "smooth" }); // Scroll to top
+      return;
+    }
+    // --- (END MODIFIED) ---
+
     try {
       setIsSubmitting(true);
   
@@ -170,13 +186,20 @@ export default function BulkRegistration() {
       }
   
       // ✅ Upload all photos to Cloudinary
-      const primaryPhotoUrl = primary.photo ? await uploadToCloudinary(primary.photo) : null;
+      // We know primary.photo exists from the check above
+      const primaryPhotoUrl = await uploadToCloudinary(primary.photo);
   
       const participantsWithPhotoUrls = await Promise.all(
-        updatedParticipants.map(async (p) => ({
-          ...p,
-          photo_url: p.photo ? await uploadToCloudinary(p.photo) : null,
-        }))
+        updatedParticipants.map(async (p) => {
+          if (!p.photo) {
+            // This should not happen if `addParticipant` is used, but it's a good safeguard
+            throw new Error(`Photo missing for participant ${p.first_name}`);
+          }
+          return {
+            ...p,
+            photo_url: await uploadToCloudinary(p.photo),
+          };
+        })
       );
   
       // ✅ Send everything to backend
@@ -203,7 +226,7 @@ export default function BulkRegistration() {
       }
     } catch (err) {
       console.error(err);
-      alert("Error uploading images or saving data.");
+      alert("Error uploading images or saving data. Please ensure all photos are uploaded.");
     } finally {
       setIsSubmitting(false);
     }
@@ -225,17 +248,34 @@ export default function BulkRegistration() {
       <div className="bg-white p-6 rounded-2xl shadow-lg border border-indigo-100 mb-8">
         <h2 className="text-xl font-semibold text-indigo-800 mb-4">👤 Primary Contact Information</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <input placeholder="First Name*" value={primary.first_name} onChange={(e) => handlePrimaryInput("first_name", e.target.value)} className="border px-3 py-2 rounded-lg" />
-          <input placeholder="Last Name*" value={primary.last_name} onChange={(e) => handlePrimaryInput("last_name", e.target.value)} className="border px-3 py-2 rounded-lg" />
-          <input type="email" placeholder="Email*" value={primary.email} onChange={(e) => handlePrimaryInput("email", e.target.value)} className="border px-3 py-2 rounded-lg" />
-          <input placeholder="Phone*" value={primary.phone} onChange={(e) => handlePrimaryInput("phone", e.target.value)} className="border px-3 py-2 rounded-lg" />
-          <select value={primary.gender} onChange={(e) => handlePrimaryInput("gender", e.target.value)} className="border px-3 py-2 rounded-lg">
-            <option value="">Select Gender</option>
+          <input placeholder="First Name*" value={primary.first_name} onChange={(e) => handlePrimaryInput("first_name", e.target.value)} className="border px-3 py-2 rounded-lg" required />
+          <input placeholder="Last Name*" value={primary.last_name} onChange={(e) => handlePrimaryInput("last_name", e.target.value)} className="border px-3 py-2 rounded-lg" required />
+          <input type="email" placeholder="Email*" value={primary.email} onChange={(e) => handlePrimaryInput("email", e.target.value)} className="border px-3 py-2 rounded-lg" required />
+          <input placeholder="Phone*" value={primary.phone} onChange={(e) => handlePrimaryInput("phone", e.target.value)} className="border px-3 py-2 rounded-lg" required />
+          <select value={primary.gender} onChange={(e) => handlePrimaryInput("gender", e.target.value)} className="border px-3 py-2 rounded-lg" required>
+            <option value="">Select Gender*</option>
             <option value="male">Male</option><option value="female">Female</option><option value="other">Other</option>
           </select>
-          <input placeholder="Organization*" value={primary.organization} onChange={(e) => handlePrimaryInput("organization", e.target.value)} className="border px-3 py-2 rounded-lg" />
-          <input placeholder="State*" value={primary.state} onChange={(e) => handlePrimaryInput("state", e.target.value)} className="border px-3 py-2 rounded-lg" />
-          <input type="file" accept="image/*" onChange={(e) => handlePrimaryInput("photo", e.target.files?.[0] || null)} className="border px-3 py-2 rounded-lg" />
+          <input placeholder="Organization*" value={primary.organization} onChange={(e) => handlePrimaryInput("organization", e.target.value)} className="border px-3 py-2 rounded-lg" required />
+          <input placeholder="State*" value={primary.state} onChange={(e) => handlePrimaryInput("state", e.target.value)} className="border px-3 py-2 rounded-lg" required />
+          
+          {/* --- (MODIFIED) Photo input with feedback --- */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Primary Contact Photo*
+            </label>
+            <input 
+              type="file" 
+              accept="image/*" 
+              onChange={(e) => handlePrimaryInput("photo", e.target.files?.[0] || null)} 
+              className="border px-3 py-2 rounded-lg w-full text-sm" 
+              required 
+            />
+            {!primary.photo && (
+              <p className="text-sm text-red-600 mt-1">Photo is required for primary contact.</p>
+            )}
+          </div>
+          {/* --- (END MODIFIED) --- */}
         </div>
       </div>
 
@@ -246,18 +286,16 @@ export default function BulkRegistration() {
           {uniqueCategories.map((cat) => <option key={cat}>{cat}</option>)}
         </select>
         <div className="flex gap-4 mb-4">
-          <button onClick={() => switchDay("1")} className={`px-3 py-2 ${activeDay==="1"?"bg-indigo-200":""}`}>Day 1</button>
-          <button onClick={() => switchDay("2")} className={`px-3 py-2 ${activeDay==="2"?"bg-indigo-200":""}`}>Day 2</button>
+          <button onClick={() => switchDay("1")} className={`px-3 py-2 rounded-md ${activeDay==="1"?"bg-indigo-200 text-indigo-800":"bg-gray-100"}`}>Day 1</button>
+          <button onClick={() => switchDay("2")} className={`px-3 py-2 rounded-md ${activeDay==="2"?"bg-indigo-200 text-indigo-800":"bg-gray-100"}`}>Day 2</button>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredEvents.map((event) => (
-            <label key={event.id} className={`border p-4 rounded-xl cursor-pointer ${selectedEvents.includes(String(event.id))?"bg-indigo-50":"bg-white"}`}>
+            <label key={event.id} className={`border p-4 rounded-xl cursor-pointer transition-all ${selectedEvents.includes(String(event.id))?"bg-indigo-50 border-indigo-300 shadow-sm":"bg-white hover:bg-gray-50"}`}>
               <input type="checkbox" checked={selectedEvents.includes(String(event.id))} onChange={() => handleEventSelection(String(event.id))} className="mr-2" />
-              <div>
-                <h3 className="font-bold">{event.name}</h3>
-                <p>{event.description}</p>
-                <p>Fee: ₹{event.fee}</p>
-              </div>
+              <span className="font-semibold text-gray-800">{event.name}</span>
+              <p className="text-sm text-gray-600">{event.description}</p>
+              <p className="text-sm font-medium text-gray-700 mt-1">Fee: ₹{event.fee}</p>
             </label>
           ))}
         </div>
@@ -267,31 +305,71 @@ export default function BulkRegistration() {
       <div className="bg-white p-6 rounded-2xl shadow-lg border border-indigo-100 mb-8">
         <h2 className="text-xl font-semibold text-indigo-800 mb-4">👥 Manage Participants</h2>
         {participants.map((p,i)=>(
-          <div key={i} className="flex justify-between items-center mb-2 border p-2 rounded-lg">
-            <p>{p.first_name} {p.last_name} ({p.gender})</p>
-            <button onClick={()=>removeParticipant(i)} className="text-red-600">Remove</button>
+          <div key={i} className="flex justify-between items-center mb-2 border p-2 rounded-lg bg-gray-50">
+            <p className="text-gray-800">{p.first_name} {p.last_name} ({p.gender}) - <span className="text-green-600">Photo Added</span></p>
+            <button onClick={()=>removeParticipant(i)} className="text-red-600 hover:text-red-800 font-medium text-sm">Remove</button>
           </div>
         ))}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4 border-t pt-4">
           <input placeholder="First Name*" value={newParticipant.first_name} onChange={(e)=>setNewParticipant({...newParticipant, first_name:e.target.value})} className="border px-3 py-2 rounded-lg" />
           <input placeholder="Last Name*" value={newParticipant.last_name} onChange={(e)=>setNewParticipant({...newParticipant, last_name:e.target.value})} className="border px-3 py-2 rounded-lg" />
           <select value={newParticipant.gender} onChange={(e)=>setNewParticipant({...newParticipant, gender:e.target.value})} className="border px-3 py-2 rounded-lg">
-            <option value="">Select Gender</option>
+            <option value="">Select Gender*</option>
             <option value="male">Male</option><option value="female">Female</option><option value="other">Other</option>
           </select>
-          <input type="file" accept="image/*" onChange={(e)=>setNewParticipant({...newParticipant, photo:e.target.files?.[0] || null})} className="border px-3 py-2 rounded-lg" />
+          <input type="file" accept="image/*" onChange={(e)=>setNewParticipant({...newParticipant, photo:e.target.files?.[0] || null})} className="border px-3 py-2 rounded-lg text-sm" required />
         </div>
-        <button onClick={addParticipant} className="mt-4 bg-indigo-600 text-white px-4 py-2 rounded-lg">Add Participant</button>
+        {/* --- (MODIFIED) Added feedback for new participant photo --- */}
+        {newParticipant.first_name && newParticipant.last_name && newParticipant.gender && !newParticipant.photo && (
+          <p className="text-sm text-red-600 mt-2">
+            Please upload a photo for {newParticipant.first_name} before adding.
+          </p>
+        )}
+        <button onClick={addParticipant} className="mt-4 bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-all">
+          + Add Participant
+        </button>
       </div>
 
       {/* Payment */}
       <div className="bg-white p-6 rounded-2xl shadow-lg border border-indigo-100 mb-8">
-        <h2 className="text-xl font-semibold text-indigo-800 mb-4">💳 Payment</h2>
-        <QRCode value={upiLink} size={200} className="mb-2" />
-        <input placeholder="UPI Transaction ID" value={txnId} onChange={(e)=>setTxnId(e.target.value)} className="border px-3 py-2 rounded-lg w-full mb-2" />
-        <button onClick={handleSubmit} disabled={isSubmitting} className="bg-indigo-600 text-white px-4 py-2 rounded-lg w-full">
-          {isSubmitting?"Processing...":"Confirm Bulk Registration"}
-        </button>
+        <h2 className="text-xl font-semibold text-indigo-800 mb-4">💳 Payment & Confirmation</h2>
+        <div className="flex flex-col sm:flex-row gap-8">
+          <div className="flex-1 flex flex-col items-center">
+            {upiLink ? (
+              <QRCode value={upiLink} size={200} className="mb-2 border p-2 rounded-lg" />
+            ) : (
+              <div className="w-[200px] h-[200px] flex items-center justify-center border p-2 rounded-lg bg-gray-50 text-gray-500 text-center">
+                <p>QR will appear once fee is calculated.</p>
+              </div>
+            )}
+            <p className="font-mono bg-gray-50 py-1 px-3 rounded border border-gray-200 select-all text-indigo-600 mt-2">
+              {upiId}
+            </p>
+            <p className="mt-2 text-2xl font-bold text-indigo-800">Total: ₹{totalFee}</p>
+          </div>
+          <div className="flex-1">
+            <input placeholder="UPI Transaction ID (if applicable)" value={txnId} onChange={(e)=>setTxnId(e.target.value)} className="border px-3 py-2 rounded-lg w-full mb-4" />
+            
+            {/* --- (MODIFIED) Submit button disabled state --- */}
+            <button 
+              onClick={handleSubmit} 
+              disabled={isSubmitting || !primary.photo} 
+              className={`w-full text-white px-4 py-3 rounded-lg font-semibold transition-all ${
+                isSubmitting || !primary.photo 
+                ? "bg-gray-400 cursor-not-allowed" 
+                : "bg-indigo-600 hover:bg-indigo-700"
+              }`}
+            >
+              {isSubmitting ? "Processing..." : "Confirm Bulk Registration"}
+            </button>
+            {!primary.photo && (
+              <p className="text-sm text-red-600 mt-2 text-center">
+                Please upload the Primary Contact's photo to enable submission.
+              </p>
+            )}
+            {/* --- (END MODIFIED) --- */}
+          </div>
+        </div>
       </div>
     </main>
   );

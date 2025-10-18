@@ -35,11 +35,12 @@ export default function PaymentPage() {
   const [photoFile, setPhotoFile] = useState<File | null>(null);
 
   // 👉 Replace this with your own Cloudinary credentials
-  const CLOUDINARY_CLOUD_NAME = process.env.CLOUDINARY_CLOUD_NAME;
-  const CLOUDINARY_UPLOAD_PRESET = process.env.CLOUDINARY_UPLOAD_PRESET;
+  const CLOUDINARY_CLOUD_NAME = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
+  const CLOUDINARY_UPLOAD_PRESET = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET;
 
   // UPI ID for payment
   const upiId = "jkbmerc00173818@jkb";
+  const isZeroFee = data?.total_fee === 0;
 
   // -------------------- Load registration data --------------------
   useEffect(() => {
@@ -52,6 +53,12 @@ export default function PaymentPage() {
         // restore photo preview if previously uploaded
         const localPhoto = localStorage.getItem("participant_photo");
         if (localPhoto) setPhotoPreview(localPhoto);
+        
+        // Note: We don't restore the photoFile, only the preview.
+        // The user would need to re-select the file if they refresh.
+        // To persist the file itself, more complex state (like IndexedDB) is needed.
+        // For this flow, we assume the preview is enough to remind them,
+        // but the `photoFile` state is what matters for submission.
 
         if (parsed.total_fee > 0) {
           const link = `upi://pay?pa=${upiId}&pn=Rang-e-chinar&am=${parsed.total_fee}&cu=INR&tn=Event Registration`;
@@ -68,15 +75,19 @@ export default function PaymentPage() {
   // -------------------- Handle photo upload --------------------
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file) return;
-    setPhotoFile(file);
+    if (!file) {
+      setPhotoFile(null);
+      setPhotoPreview(null);
+      localStorage.removeItem("participant_photo");
+      return;
+    }
 
-    setPhotoFile(file);
+    setPhotoFile(file); // Set the File object
 
     const reader = new FileReader();
     reader.onload = () => {
       const base64 = reader.result as string;
-      setPhotoPreview(base64);
+      setPhotoPreview(base64); // Set the preview string
       localStorage.setItem("participant_photo", base64);
     };
     reader.readAsDataURL(file);
@@ -86,10 +97,10 @@ export default function PaymentPage() {
   const uploadToCloudinary = async (file: File) => {
     const formData = new FormData();
     formData.append("file", file); // send the File object directly
-    formData.append("upload_preset", process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET!); // your unsigned preset
+    formData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET!); // your unsigned preset
   
     const res = await fetch(
-      `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`,
+      `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`,
       {
         method: "POST",
         body: formData,
@@ -109,14 +120,24 @@ export default function PaymentPage() {
   // -------------------- Handle Registration Submit --------------------
   const handleSubmit = async () => {
     if (!data) return;
+
+    // --- (MODIFIED) ADDED CHECKS ---
+    if (!photoFile) {
+      alert("Please upload your photo to complete registration.");
+      return; // Stop execution
+    }
+
+    if (!isZeroFee && !txnId.trim()) {
+      alert("Please enter your UPI Transaction ID.");
+      return; // Stop execution
+    }
+    // --- END OF MODIFICATION ---
+    
     setIsSubmitting(true);
   
     try {
-      let photoUrl = null;
-      if (photoFile) {
-        // Only upload the File object
-        photoUrl = await uploadToCloudinary(photoFile);
-      }
+      // We now know photoFile is not null, so we can upload it directly
+      const photoUrl = await uploadToCloudinary(photoFile);
   
       const res = await fetch("/api/register", {
         method: "POST",
@@ -125,13 +146,16 @@ export default function PaymentPage() {
           ...data,
           txn_id: data.total_fee > 0 ? txnId : "FREE",
           amount: data.total_fee,
-          photo_url: photoUrl,
+          photo_url: photoUrl, // Pass the new URL
         }),
       });
   
       const result = await res.json();
   
       if (res.ok) {
+        // Clear local storage on success
+        localStorage.removeItem("registration_data");
+        localStorage.removeItem("participant_photo");
         router.push("/success");
       } else {
         alert(result.error || "Something went wrong.");
@@ -155,7 +179,7 @@ export default function PaymentPage() {
     );
   }
 
-  const isZeroFee = data.total_fee === 0;
+  // const isZeroFee = data.total_fee === 0; // Moved to top
 
   return (
     <main className="max-w-5xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
@@ -166,7 +190,7 @@ export default function PaymentPage() {
       {/* ---------- PHOTO UPLOAD SECTION ---------- */}
       <div className="bg-white p-6 rounded-2xl shadow-lg border border-indigo-100 mb-8">
         <h2 className="text-xl font-semibold text-indigo-800 mb-4">
-          Upload Your Photo
+          Upload Your Photo (Required)
         </h2>
         <div className="flex flex-col items-center gap-4">
           {photoPreview && (
@@ -181,7 +205,15 @@ export default function PaymentPage() {
             accept="image/*"
             onChange={handlePhotoChange}
             className="border border-gray-300 rounded-lg px-3 py-2 text-sm"
+            required 
           />
+          {/* --- (MODIFIED) ADDED FEEDBACK --- */}
+          {!photoFile && (
+            <p className="text-sm text-red-600 font-medium text-center">
+              A photo is required to complete registration.
+            </p>
+          )}
+          {/* --- END OF MODIFICATION --- */}
           <p className="text-sm text-gray-500 text-center">
             Your photo will be uploaded to the cloud once you confirm registration.
           </p>
@@ -238,12 +270,14 @@ export default function PaymentPage() {
               <p className="text-sm text-gray-500">Entry Fee</p>
               <p className="text-lg font-bold text-gray-800">₹{data.entry_fee}</p>
             </div>
+            {/* --- THIS BLOCK IS NOW CORRECTED --- */}
             <div className="bg-indigo-50 p-3 rounded-lg">
               <p className="text-sm text-indigo-600">Total Amount</p>
               <p className="text-lg font-bold text-gray-800">
                 {isZeroFee ? "FREE" : `₹${data.total_fee}`}
               </p>
             </div>
+            {/* --- END OF CORRECTION --- */}
           </div>
         </div>
       </div>
@@ -258,9 +292,10 @@ export default function PaymentPage() {
             </p>
             <button
               onClick={handleSubmit}
-              disabled={isSubmitting}
+              // --- (MODIFIED) ADDED !photoFile CHECK ---
+              disabled={isSubmitting || !photoFile}
               className={`bg-indigo-600 text-white py-3 px-8 rounded-lg font-medium transition-all 
-                ${isSubmitting ? "opacity-70 cursor-not-allowed" : "hover:bg-indigo-700"}`}
+                ${isSubmitting || !photoFile ? "opacity-70 cursor-not-allowed" : "hover:bg-indigo-700"}`}
             >
               {isSubmitting ? (
                 <span className="flex items-center justify-center">
@@ -317,14 +352,16 @@ export default function PaymentPage() {
                     onChange={(e) => setTxnId(e.target.value)}
                     placeholder="Enter UPI Transaction ID"
                     className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-transparent transition-all"
+                    required
                   />
                 </div>
 
                 <button
                   onClick={handleSubmit}
-                  disabled={isSubmitting || !txnId.trim()}
+                  // --- (MODIFIED) ADDED !photoFile CHECK ---
+                  disabled={isSubmitting || !txnId.trim() || !photoFile}
                   className={`w-full bg-indigo-600 text-white py-3 rounded-lg font-medium transition-all 
-                    ${isSubmitting ? "opacity-70 cursor-not-allowed" : "hover:bg-indigo-700"}`}
+                    ${isSubmitting || !txnId.trim() || !photoFile ? "opacity-70 cursor-not-allowed" : "hover:bg-indigo-700"}`}
                 >
                   {isSubmitting ? (
                     <span className="flex items-center justify-center">
