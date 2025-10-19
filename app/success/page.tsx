@@ -7,7 +7,7 @@ export default function SuccessPage() {
       <p className="text-lg mb-2">Thank you for registering.</p>
       <p className="text-md text-gray-700 mb-6">
         After we process your transaction details, you will receive an email
-        with your ticket attached
+        with your ticket attached 1-2 days before the event.
       </p>
 
       <a href="https://rang-e-chinar.nitsri.ac.in/" className="inline-block mt-4 text-blue-600 underline">
