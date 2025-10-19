@@ -155,7 +155,7 @@ export default function HomePage() {
     if (form.is_nit_student) {
       // For NIT students: Charge for Workshop category AND Haunted House events
       newEventsFee = selectedEventObjs
-        .filter(event => event.category === "Workshop" || isHauntedHouseEvent(event))
+        .filter(event => isHauntedHouseEvent(event))
         .reduce((sum, ev) => sum + ev.fee, 0);
       // NIT students don't pay entry fee
       newEntryFee = 0;
@@ -252,7 +252,6 @@ export default function HomePage() {
         <div className="mt-2 bg-green-50 p-3 rounded-lg text-sm">
           <p className="font-medium text-green-700">Fee Policy for NIT Students:</p>
           <ul className="list-disc pl-5 space-y-1">
-            <li>Workshop events: Regular fee applies</li>
             <li>Haunted House: Regular fee applies</li>
             <li>All other events: Free (no charge)</li>
           </ul>
@@ -498,7 +497,7 @@ export default function HomePage() {
               const eventId = String(event.id);
               // Determine if this event should have a special indicator (free for NIT students)
               const isFreeForNIT = form.is_nit_student && 
-                event.category !== "Workshop" && 
+                
                 !isHauntedHouseEvent(event);
               
               // Check if this event is from a day the user isn't attending
@@ -597,7 +596,7 @@ export default function HomePage() {
             <p className="text-2xl font-bold">₹{eventsFee}</p>
             {form.is_nit_student && (
               <p className="text-xs text-green-600 mt-1">
-                *Only workshops & haunted house
+                *Only haunted house
               </p>
             )}
           </div>
@@ -665,7 +664,7 @@ export default function HomePage() {
                     <li>College Students (Including Class 11 & 12) – Rs.29</li>
                     <li>NIT alumni – Rs.299</li>
                     <li>Others (With Any govt ID) – Rs.999</li>
-                    <li className="text-green-700 font-medium">*NIT students participate in most events for free, except workshops and haunted house (no entry fee).</li>
+                    <li className="text-green-700 font-medium">*NIT students participate in most events for free, except haunted house (no entry fee).</li>
                   </ul>
                 </div>
 
