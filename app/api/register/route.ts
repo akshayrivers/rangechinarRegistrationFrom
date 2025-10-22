@@ -17,7 +17,11 @@ export async function POST(req: Request) {
         attend_day1,
         attend_day2,
         participant_category,
-        photo_url, // ✅ new field
+        photo_url,
+        "SPOC NAME": SPOC_NAME, // ✅ new field
+        "SPOC PHONE": SPOC_PHONE, // ✅ new field
+        "SPOC EMAIL": SPOC_EMAIL, // ✅ new field
+        "INSTITUTE NAME": INSTITUTE_NAME, // ✅ new field
     } = await req.json()
 
     // ✅ Check if email already registered
@@ -34,7 +38,7 @@ export async function POST(req: Request) {
         )
     }
 
-    // ✅ Insert participant including photo URL
+    // ✅ Insert participant including photo URL and SPOC data
     const { data: participant, error: insertError } = await supabase
         .from('participants')
         .insert([
@@ -52,7 +56,11 @@ export async function POST(req: Request) {
                 attend_day1,
                 attend_day2,
                 participant_category,
-                photo_url, // ✅ added here
+                photo_url,
+                "SPOC NAME": SPOC_NAME, // ✅ added here
+                "SPOC PHONE": SPOC_PHONE, // ✅ added here
+                "SPOC EMAIL": SPOC_EMAIL, // ✅ added here
+                "INSTITUTE NAME": INSTITUTE_NAME, // ✅ added here
             },
         ])
         .select()

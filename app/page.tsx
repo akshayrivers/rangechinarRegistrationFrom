@@ -4,6 +4,289 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { z } from "zod";
 
+// SPOC Data
+const spocData = [
+    // ... (Your SPOC data remains here, no changes)
+    {
+        "SPOC Name":"MR MANZOOR AHMAD DAR",
+        "SPOC Email":"shaansahib2008@gmail.com",
+        "SPOC Phone Number":"9622853815",
+        "Institution Name":"new dream land educational institute "
+    },
+    {
+        "SPOC Name":"MUDASIR AHMAD WANI",
+        "SPOC Email":"mudasurwani@cukashmir.ac.in",
+        "SPOC Phone Number":"7006588751",
+        "Institution Name":"HEE BEMINA"
+    },
+    {
+        "SPOC Name":"Dr. Azra Bashir",
+        "SPOC Email":"azra@kcet.edu.in",
+        "SPOC Phone Number":"7006734614",
+        "Institution Name":"Kashmir College of Engineering and Technology"
+    },
+    {
+        "SPOC Name":"Mr. Anaytullah Haji",
+        "SPOC Email":"anayathajiimssa@gmail.com",
+        "SPOC Phone Number":"9682338696",
+        "Institution Name":"Iqbal Memorial Secondary School Ajas"
+    },
+    {
+        "SPOC Name":"SHAHNAWAZ AHMAD",
+        "SPOC Email":"Kingnawaz97@gmail.com",
+        "SPOC Phone Number":"7006891710",
+        "Institution Name":"BHSS SAFAPORA"
+    },
+    {
+        "SPOC Name":"Shah Faisal",
+        "SPOC Email":"Sfaisal0202@gmail.com",
+        "SPOC Phone Number":"9149878496",
+        "Institution Name":"Al Noor Para Medical & Nursing Institute. "
+    },
+    {
+        "SPOC Name":"Dr.Khursheed Ahmad",
+        "SPOC Email":"mkhursheedn26@gmail.com",
+        "SPOC Phone Number":"7006002377",
+        "Institution Name":"GDC Shopian"
+    },
+    {
+        "SPOC Name":"Saima Khan",
+        "SPOC Email":"mailsaimakhans@gmail.com",
+        "SPOC Phone Number":"9596970035",
+        "Institution Name":"Government Degree College Sopore"
+    },
+    {
+        "SPOC Name":"MUDASIR MANZOOR",
+        "SPOC Email":"mudasir465@gmail.com",
+        "SPOC Phone Number":"7006658003",
+        "Institution Name":"GOVT BHSS CHARAR I SHARIEF "
+    },
+    {
+        "SPOC Name":"Junaid hussain yetoo ",
+        "SPOC Email":"Yetoojunaid@gmail.com",
+        "SPOC Phone Number":"9596185358",
+        "Institution Name":"Government High school panzath "
+    },
+    {
+        "SPOC Name":"Dr Meer Umer",
+        "SPOC Email":"umeer1950@gmail.com",
+        "SPOC Phone Number":"9906936999",
+        "Institution Name":"Government Polytechnic College"
+    },
+    {
+        "SPOC Name":"Dr. Farhat Hassan",
+        "SPOC Email":"farhathassanwani52652@gmail.com",
+        "SPOC Phone Number":"9906874251",
+        "Institution Name":"Srinagar womens college srinagar Zakura "
+    },
+    {
+        "SPOC Name":"Dr Farhana Mehraj Allai ",
+        "SPOC Email":"faruallai@gmail.com",
+        "SPOC Phone Number":"7006137658",
+        "Institution Name":"Islamic University of Science and Technology "
+    },
+    {
+        "SPOC Name":"Dr Bashir Ahmad",
+        "SPOC Email":"drgamgeen8971@gmail.com",
+        "SPOC Phone Number":"7780931110",
+        "Institution Name":"Gdcmagam"
+    },
+    {
+        "SPOC Name":"Riyaz Ahmad Bhat",
+        "SPOC Email":"ayazbhat991@gmail.com",
+        "SPOC Phone Number":"9797082024",
+        "Institution Name":"GHSS NOWGAM"
+    },
+    {
+        "SPOC Name":"Dr. Idris Afzal Shah",
+        "SPOC Email":"Idris.shah@nift.ac.in",
+        "SPOC Phone Number":"9596011541",
+        "Institution Name":"NIFT Srinagar"
+    },
+    {
+        "SPOC Name":"Zahid ",
+        "SPOC Email":"Zahidbhatsr@gmail.com",
+        "SPOC Phone Number":"9018555737",
+        "Institution Name":"Lakecity college "
+    },
+    {
+        "SPOC Name":"Javaid Ayub sheikh ",
+        "SPOC Email":"sunatjavaidps@gmail.com",
+        "SPOC Phone Number":"9596163577",
+        "Institution Name":"GDC Khansahib"
+    },
+    {
+        "SPOC Name":"Dr. Saba niaz",
+        "SPOC Email":"sobnewtonn@gmail.com",
+        "SPOC Phone Number":"8082788332",
+        "Institution Name":"Govt girls higher secondary school soura"
+    },
+    {
+        "SPOC Name":"Dr Abina Habib",
+        "SPOC Email":"abinahabib@gmail.com",
+        "SPOC Phone Number":"9797009106",
+        "Institution Name":"GCW MA Road"
+    },
+    {
+        "SPOC Name":"Taqwa Mukhtar ",
+        "SPOC Email":"babataqwa89@gmail.com",
+        "SPOC Phone Number":"8493033651",
+        "Institution Name":"Islamic University of Science and Technology "
+    },
+    {
+        "SPOC Name":"Tooba Hilal Wani",
+        "SPOC Email":"Toobahilal356@gmail.com",
+        "SPOC Phone Number":"7889725023",
+        "Institution Name":"Islamic University of science and technology"
+    },
+    {
+        "SPOC Name":"Ishfaq Maqbool ",
+        "SPOC Email":"ishfaqmaqbool14@gmail.com",
+        "SPOC Phone Number":"7889646497",
+        "Institution Name":"City School Anantnag "
+    },
+    {
+        "SPOC Name":"Farhana Allai",
+        "SPOC Email":"Faruallai@gmail.com",
+        "SPOC Phone Number":"+91 70061 37658",
+        "Institution Name":"IUST, Awantipora"
+    },
+    {
+        "SPOC Name":"Farhana illahi",
+        "SPOC Email":"faruallai@gmail.com",
+        "SPOC Phone Number":"7006137658",
+        "Institution Name":"Islamic university of science and technology "
+    },
+    {
+        "SPOC Name":"Dr. Mohmad Azhar",
+        "SPOC Email":"mohmadazhar286@gmail.com",
+        "SPOC Phone Number":"9149539973",
+        "Institution Name":"Islamic University of Science and Technology "
+    },
+    {
+        "SPOC Name":"Shahid ashraf sofi ",
+        "SPOC Email":"shahidashrf10@gmail.com",
+        "SPOC Phone Number":"6006919076",
+        "Institution Name":"Ihm srinagar "
+    },
+    {
+        "SPOC Name":"Furqan bin subzar",
+        "SPOC Email":"furkansoub07@gmail.com",
+        "SPOC Phone Number":"6006347980",
+        "Institution Name":"IHM srinagar "
+    },
+    {
+        "SPOC Name":"Ibrahim feroz ",
+        "SPOC Email":"bhatibrahim220@gmail.com",
+        "SPOC Phone Number":"7889786250",
+        "Institution Name":"Institute of hotel management "
+    },
+    {
+        "SPOC Name":"Adnan ",
+        "SPOC Email":"adnanjavaid040@gmail.com",
+        "SPOC Phone Number":"7006198809",
+        "Institution Name":"Ihm srinagar "
+    },
+    {
+        "SPOC Name":"Shah kashif hussain ",
+        "SPOC Email":"kashifhussain985695666@gmail.com",
+        "SPOC Phone Number":"9797488028",
+        "Institution Name":"IHM SRINAGAR"
+    },
+    {
+        "SPOC Name":"Prof. S. A. Gangoo ",
+        "SPOC Email":"dsw@skuastkasmir.ac.in",
+        "SPOC Phone Number":"9419076319",
+        "Institution Name":"Shere kashmir university of agricultural sciences and technology of Kashmir "
+    },
+    {
+        "SPOC Name":"Nazaliya noor",
+        "SPOC Email":"nazaliyanoor3@gmail.com",
+        "SPOC Phone Number":"9103114755",
+        "Institution Name":"Ihm Srinagar "
+    },
+    {
+        "SPOC Name":"Nida khursheed ",
+        "SPOC Email":"nidakhursheeddar@gmail.com",
+        "SPOC Phone Number":"9103113133",
+        "Institution Name":"IHM RAJBAGH SRINAGAR "
+    },
+    {
+        "SPOC Name":"Mir Khusrau ",
+        "SPOC Email":"mirkhusrau5@gmail.com",
+        "SPOC Phone Number":"7006089568",
+        "Institution Name":"SP College, Srinagar "
+    },
+    {
+        "SPOC Name":"MEHROOMA AKBAR ",
+        "SPOC Email":"darmehrudarmehru@gmail.com",
+        "SPOC Phone Number":"91495 52613 ",
+        "Institution Name":"Islamia college of Science and Commerce "
+    },
+    {
+        "SPOC Name":"Dr Nusrat Nabi",
+        "SPOC Email":"Nusratthaji@gmail.com",
+        "SPOC Phone Number":"9697978197",
+        "Institution Name":"Govt.Degree college ganderbal"
+    },
+    {
+        "SPOC Name":"MAGRAY AJAZ AHMAD",
+        "SPOC Email":"principal@gdcboysang.ac.in ",
+        "SPOC Phone Number":"9596441959",
+        "Institution Name":"SHMM GDC ANANTNAG"
+    },
+    {
+        "SPOC Name":"Bilal Ahmed Malik ",
+        "SPOC Email":"Bilalmalik61@gmail.com",
+        "SPOC Phone Number":"8803914713",
+        "Institution Name":"Crescent public School naseembagh srinagar "
+    },
+    {
+        "SPOC Name":"Junaid-ul-Shabar Khan ",
+        "SPOC Email":"hydereqarar@gmail.com",
+        "SPOC Phone Number":"7006590062",
+        "Institution Name":"Crescent Public School"
+    },
+    {
+        "SPOC Name":"Fiza Qureashi",
+        "SPOC Email":"qureshifiza7@gmail.com",
+        "SPOC Phone Number":"7006503313",
+        "Institution Name":"Green Valley Educational Institute "
+    },
+    {
+        "SPOC Name":"Saiqa ",
+        "SPOC Email":"saikabhatt905@gmail.com",
+        "SPOC Phone Number":"9149466626",
+        "Institution Name":"islamia college of science and commerce srinagar"
+    },
+    {
+        "SPOC Name":"Sahban Khan",
+        "SPOC Email":"sahban354@gmail.com",
+        "SPOC Phone Number":"9797807239",
+        "Institution Name":"Institute of Hotel Management Srinagar"
+    },
+    {
+        "SPOC Name":"Mrs Afshana Bashir",
+        "SPOC Email":"afshanabashir88@gmail.com",
+        "SPOC Phone Number":"7006604846",
+        "Institution Name":"Kashmir Law College"
+    },
+    {
+        "SPOC Name":"Syed Akeela Gillani ",
+        "SPOC Email":"syedakeela786@gmail.com",
+        "SPOC Phone Number":"7006751169",
+        "Institution Name":"Ingenious School "
+    }
+];
+
+interface SpocEntry {
+  "SPOC Name": string;
+  "SPOC Email": string;
+  "SPOC Phone Number": string;
+  "Institution Name": string;
+}
+
+// ✅ MODIFIED: Zod Schema
 const registrationSchema = z.object({
   first_name: z.string().min(1, "First name is required"),
   last_name: z.string().min(1, "Last name is required"),
@@ -23,8 +306,60 @@ const registrationSchema = z.object({
   attend_day2: z.boolean(),
   agree_to_rules: z.boolean().refine(val => val === true, {
     message: "You must agree to the event rules"
-  })
+  }),
+  // ✅ MODIFIED: SPOC fields are now optional strings
+  "INSTITUTE NAME": z.string().optional(),
+  "SPOC NAME": z.string().optional(),
+  "SPOC EMAIL": z.string().optional(),
+  "SPOC PHONE": z.string().optional(),
+})
+// ✅ ADDED: SuperRefine for conditional SPOC validation
+.superRefine((data, ctx) => {
+  // If the user is NOT a NIT student, then the SPOC fields are required
+  if (!data.is_nit_student) {
+    if (!data["INSTITUTE NAME"] || data["INSTITUTE NAME"] === "") {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Institute is required",
+        path: ["INSTITUTE NAME"],
+      });
+    }
+    if (!data["SPOC NAME"] || data["SPOC NAME"] === "") {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "SPOC Name is required",
+        path: ["SPOC NAME"],
+      });
+    }
+    if (!data["SPOC PHONE"] || data["SPOC PHONE"] === "") {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "SPOC Phone is required",
+        path: ["SPOC PHONE"],
+      });
+    }
+    
+    // Check for SPOC email
+    if (!data["SPOC EMAIL"] || data["SPOC EMAIL"] === "") {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "SPOC Email is required",
+        path: ["SPOC EMAIL"],
+      });
+    } else if (!z.string().email().safeParse(data["SPOC EMAIL"]).success) {
+      // Only check for valid email if it's not a NIT student
+       ctx.addIssue({
+        code: z.ZodIssueCode.invalid_string,
+        validation: "email",
+        message: "Invalid SPOC Email",
+        path: ["SPOC EMAIL"],
+      });
+    }
+  }
+  // If data.is_nit_student is true, this block is skipped,
+  // and the fields (now containing "nit no spoc") are considered valid.
 });
+
 
 type RegistrationData = z.input<typeof registrationSchema>;
 
@@ -70,8 +405,37 @@ export default function HomePage() {
     selected_events: [],
     attend_day1: true, // Default to attending day 1
     attend_day2: false,
-    agree_to_rules: false
+    agree_to_rules: false,
+    "INSTITUTE NAME": "",
+    "SPOC NAME": "",
+    "SPOC EMAIL": "",
+    "SPOC PHONE": "",
   });
+
+  // ✅ ADDED: This useEffect handles clearing/setting SPOC data when NIT student status changes
+  useEffect(() => {
+    if (form.is_nit_student) {
+      // If user is a NIT student, disable and fill SPOC fields
+      setForm((prev) => ({
+        ...prev,
+        "INSTITUTE NAME": "nit no spoc",
+        "SPOC NAME": "nit no spoc",
+        "SPOC EMAIL": "nit no spoc",
+        "SPOC PHONE": "nit no spoc",
+      }));
+    } else {
+      // If user is not a NIT student, clear SPOC fields for selection
+      // This ensures they must re-select if they uncheck the box
+      setForm((prev) => ({
+        ...prev,
+        "INSTITUTE NAME": "",
+        "SPOC NAME": "",
+        "SPOC EMAIL": "",
+        "SPOC PHONE": "",
+      }));
+    }
+  }, [form.is_nit_student]);
+
 
   useEffect(() => {
     fetch("/api/events")
@@ -183,6 +547,36 @@ export default function HomePage() {
     setForm((prev) => ({ ...prev, [key]: value }));
   };
 
+  // ✅ MODIFIED: SPOC Handler
+  const handleInstituteChange = (instituteName: string) => {
+    // ✅ ADDED: Do nothing if NIT student is checked
+    if (form.is_nit_student) return;
+
+    const selectedSpoc = spocData.find(
+      (spoc) => spoc["Institution Name"] === instituteName
+    );
+
+    if (selectedSpoc) {
+      setForm((prev) => ({
+        ...prev,
+        "INSTITUTE NAME": selectedSpoc["Institution Name"],
+        "SPOC NAME": selectedSpoc["SPOC Name"],
+        "SPOC EMAIL": selectedSpoc["SPOC Email"],
+        // ✅ MODIFIED: Added check for undefined phone number
+        "SPOC PHONE": (selectedSpoc["SPOC Phone Number"] ?? '').replace(/[^0-9]/g, ''), // Clean phone number
+      }));
+    } else {
+      // Clear fields if "Select..." is chosen
+      setForm((prev) => ({
+        ...prev,
+        "INSTITUTE NAME": "",
+        "SPOC NAME": "",
+        "SPOC EMAIL": "",
+        "SPOC PHONE": "",
+      }));
+    }
+  };
+
   const toggleEvent = (id: string | number) => {
     const idStr = String(id);
     setForm((prev) => {
@@ -213,6 +607,7 @@ export default function HomePage() {
 
     if (!result.success) {
       console.error("Validation error:", result.error.format());
+      // Show the first error message
       alert(result.error.errors[0].message);
       return;
     }
@@ -223,6 +618,9 @@ export default function HomePage() {
       entry_fee: entryFee,
       events_fee: eventsFee
     };
+
+    // Log to check data before sending
+    console.log("Saving to local storage:", transformedData);
 
     localStorage.setItem("registration_data", JSON.stringify(transformedData));
     router.push("/payment");
@@ -254,6 +652,7 @@ export default function HomePage() {
           <ul className="list-disc pl-5 space-y-1">
             <li>Haunted House: Regular fee applies</li>
             <li>All other events: Free (no charge)</li>
+            <li>No Entry Fee. SPOC details are not required.</li> {/* ✅ ADDED */}
           </ul>
         </div>
       );
@@ -266,6 +665,7 @@ export default function HomePage() {
           <ul className="list-disc pl-5 space-y-1">
             <li>Event registration: Regular event fees apply</li>
             <li>Entry fee: <span className="font-medium">A one-time fee of ₹{oneTimeFee} is required if attending one or both days.</span></li>
+            <li>SPOC details from your institute are required.</li> {/* ✅ ADDED */}
           </ul>
         </div>
       );
@@ -286,6 +686,8 @@ export default function HomePage() {
         </h2>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {/* ... (First Name, Last Name, Email, Phone, Org, State, Gender - no changes) ... */}
+          
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               First Name
@@ -380,6 +782,7 @@ export default function HomePage() {
             </select>
           </div>
 
+
           <div className="flex flex-col sm:flex-row items-start sm:items-center">
             <div className="flex items-center mr-6 mb-2 sm:mb-0">
               <input
@@ -394,13 +797,14 @@ export default function HomePage() {
               </label>
             </div>
             
-            {/* Participant Category Dropdown - Only show when not an NIT student */}
+            {/* ✅ MODIFIED: Participant Category Dropdown - Now also disabled for NIT students */}
             {!form.is_nit_student && (
               <div className="w-full">
                 <select
                   value={form.participant_category}
                   onChange={(e) => handleInput("participant_category", e.target.value)}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-transparent transition-all text-sm"
+                  disabled={form.is_nit_student} // ✅ ADDED
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-transparent transition-all text-sm disabled:cursor-not-allowed disabled:bg-gray-200" // ✅ MODIFIED
                 >
                   {participantCategories.map((category) => (
                     <option key={category.id} value={category.id}>
@@ -411,14 +815,85 @@ export default function HomePage() {
               </div>
             )}
           </div>
+
+          {/* ✅ START: SPOC Information Section */}
+          <div className="sm:col-span-2 p-4 bg-gray-50 rounded-lg border border-gray-200">
+            <h3 className="text-lg font-medium text-gray-800 mb-3">
+              SPOC Information (Required for non-NIT)
+            </h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Select Institute
+                </label>
+                <select
+                  value={form["INSTITUTE NAME"]}
+                  onChange={(e) => handleInstituteChange(e.target.value)}
+                  disabled={form.is_nit_student} // ✅ ADDED
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-transparent transition-all disabled:cursor-not-allowed disabled:bg-gray-200" // ✅ MODIFIED
+                >
+                  <option value="">Select your institute...</option>
+                  {spocData.map((spoc) => (
+                    <option
+                      key={spoc["Institution Name"] + spoc["SPOC Name"]}
+                      value={spoc["Institution Name"]}
+                    >
+                      {spoc["Institution Name"]}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  SPOC Name
+                </label>
+                <input
+                  type="text"
+                  value={form["SPOC NAME"]}
+                  readOnly
+                  disabled={form.is_nit_student} // ✅ ADDED
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 bg-gray-100 text-gray-600 cursor-not-allowed disabled:cursor-not-allowed disabled:bg-gray-200" // ✅ MODIFIED
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  SPOC Email
+                </label>
+                <input
+                  type="email"
+                  value={form["SPOC EMAIL"]}
+                  readOnly
+                  disabled={form.is_nit_student} // ✅ ADDED
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 bg-gray-100 text-gray-600 cursor-not-allowed disabled:cursor-not-allowed disabled:bg-gray-200" // ✅ MODIFIED
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  SPOC Phone
+                </label>
+                <input
+                  type="tel"
+                  value={form["SPOC PHONE"]}
+                  readOnly
+                  disabled={form.is_nit_student} // ✅ ADDED
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 bg-gray-100 text-gray-600 cursor-not-allowed disabled:cursor-not-allowed disabled:bg-gray-200" // ✅ MODIFIED
+                />
+              </div>
+            </div>
+          </div>
+          {/* ✅ END: SPOC Information Section */}
+
         </div>
 
         {/* Day Selection */}
         <div className="mt-4 p-4 bg-indigo-50 rounded-lg">
+          {/* ... (No changes in this section) ... */}
           <h3 className="text-lg font-medium text-indigo-800 mb-3">
             Select Days to Attend
           </h3>
-          {/* --- (MODIFIED) Removed fee text from labels --- */}
           <div className="flex flex-wrap gap-4">
             <label className="flex items-center space-x-2">
               <input
@@ -440,7 +915,6 @@ export default function HomePage() {
               <span className="font-medium">Day 2</span>
             </label>
           </div>
-          {/* --- (END MODIFICATION) --- */}
           {(!form.attend_day1 && !form.attend_day2) && (
             <p className="text-red-500 text-sm mt-2">Please select at least one day to attend</p>
           )}
@@ -449,6 +923,10 @@ export default function HomePage() {
         {/* Fee Explanation */}
         {getFeeExplanation()}
       </section>
+
+      {/* ... (Rest of the file: Event Selection, Rules, Payment Summary, Modal) ... */}
+      {/* ... (No changes are needed in the rest of the file) ... */}
+
 
       {/* Event Selection */}
       <section className="mt-8 sm:mt-12">
