@@ -401,8 +401,7 @@ const spocData = [
     "SPOC Email": "aa6851567@gmail.com",
     "SPOC Phone Number": "7006816841",
     "Institution Name": "Govt.boys higher secondary school soura"
-  },
-  {
+  },{
     "SPOC Name": "Anam Tariq",
     "SPOC Email": "casetcollege2001@gmail.com",
     "SPOC Phone Number": 7006477954,
