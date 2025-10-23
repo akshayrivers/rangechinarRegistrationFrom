@@ -283,6 +283,13 @@ const spocData = [
         "SPOC Email":"syedakeela786@gmail.com",
         "SPOC Phone Number":"7006751169",
         "Institution Name":"Ingenious School "
+    },
+    {
+      "SPOC Name":"Dr.Mahjabeen Akhter",
+      "SPOC Email":"drmahjabeenakh5@gmail.com",
+      "SPOC Phone Number":"9622742761",
+      "Institution Name":"Govt College for women Nawakadal"
+
     }
 ];
 
