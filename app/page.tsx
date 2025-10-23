@@ -404,67 +404,67 @@ const spocData = [
   },{
     "SPOC Name": "Anam Tariq",
     "SPOC Email": "casetcollege2001@gmail.com",
-    "SPOC Phone Number": 7006477954,
+    "SPOC Phone Number": "7006477954",
     "Institution Name": "CASET college of Computer Science "
   },
   {
     "SPOC Name": "Rahil rashid ",
     "SPOC Email": "bhatrahil302@gmail.com",
-    "SPOC Phone Number": 6006939640,
+    "SPOC Phone Number": "6006939640",
     "Institution Name": " Boys Higher Secondary, Soura"
   },
   {
     "SPOC Name": "Motaz",
     "SPOC Email": "moatazayoub@gamil.com",
-    "SPOC Phone Number": 6005363304,
+    "SPOC Phone Number": "6005363304",
     "Institution Name": "Govt boys higher secondary school soura"
   },
   {
     "SPOC Name": "Bushra",
     "SPOC Email": "bushrashafi002@gmail.com",
-    "SPOC Phone Number": 9103705094,
+    "SPOC Phone Number": "9103705094",
     "Institution Name": "Islamia college  of science and commerce "
   },
   {
     "SPOC Name": "Aiman",
     "SPOC Email": "Qadiraiman98@gmail.com",
-    "SPOC Phone Number": 8899449326,
+    "SPOC Phone Number": "8899449326",
     "Institution Name": "Iust"
   },
   {
     "SPOC Name": "Azhar Shafat",
     "SPOC Email": "azharshafat47@gmail.com",
-    "SPOC Phone Number": 9596209236,
+    "SPOC Phone Number": "9596209236",
     "Institution Name": "Govt boys higher secondary school soura"
   },
   {
     "SPOC Name": "Syed Shuja Razvi",
     "SPOC Email": "syedshuja118@gmail.com",
-    "SPOC Phone Number": 9149707034,
+    "SPOC Phone Number": "9149707034",
     "Institution Name": "Alasma Educational Institute Budgam"
   },
   {
     "SPOC Name": "Rutba jan ",
     "SPOC Email": "rutbas417@gmail.com",
-    "SPOC Phone Number": 9796172848,
+    "SPOC Phone Number": "9796172848",
     "Institution Name": "Islamia college of science and commerce "
   },
   {
     "SPOC Name": "Firas",
     "SPOC Email": "kuthoofiras@gmail.com",
-    "SPOC Phone Number": 9906374848,
+    "SPOC Phone Number": "9906374848",
     "Institution Name": "Institute of Hotel Management"
   },
   {
     "SPOC Name": "Mehvish Manzoor ",
     "SPOC Email": "syedamehvish978@gmail.com",
-    "SPOC Phone Number": 6006490354,
+    "SPOC Phone Number": "6006490354",
     "Institution Name": "Islamia College of science and commerce "
   },
   {
     "SPOC Name": "Nasreen ",
     "SPOC Email": "nasreena.nazir@kashmirharvard.org",
-    "SPOC Phone Number": 9469942169,
+    "SPOC Phone Number": "9469942169",
     "Institution Name": "Kashmir Harvard Educational Institute "
   }
 ]
