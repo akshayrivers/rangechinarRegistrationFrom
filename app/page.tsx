@@ -15,7 +15,7 @@ const spocData = [
     },
     {
       "SPOC Name":" Dr.Shahnawaz Kawoosa",
-      "SPOC Email":"shahnawaz.kawoosa@yahoo.in",
+      "SPOC Email":"nawaz.kawoosa@yahoo.in",
     "SPOC Phone Number":"7006270654",
     "Institution Name":"KASHMIR TIBIA COLLEGE"
     },
