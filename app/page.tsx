@@ -290,6 +290,12 @@ const spocData = [
       "SPOC Phone Number":"9622742761",
       "Institution Name":"Govt College for women Nawakadal"
 
+    },
+    {
+      "SPOC Name":"Anam Tariq",
+      "SPOC Email":"Casetcollege2001@gmail.com",
+      "SPOC Phone Number":"7006477954",
+      "Institution Name":"CASET college of Computer Science"
     }
 ];
 
