@@ -53,6 +53,11 @@ const spocData = [
     "SPOC Email": "apssrinagarkmr@gmail.com",
     "SPOC Phone Number": "9858399950",
     "Institution Name": "Army Public School"
+},{
+  "SPOC Name":"Rafiya Jan",
+  "SPOC Email":"rafiyajan.bhat@gmail.com",
+  "SPOC Phone Number":"7006323155",
+  "Institution Name":"University of Kashmir",
 },
     // ... (Your SPOC data remains here, no changes)
     {
