@@ -6,6 +6,54 @@ import { z } from "zod";
 
 // SPOC Data
 const spocData = [
+  {
+    "SPOC Name": "Minha nazir",
+    "SPOC Email": "minhanazir959@gmail.com",
+    "SPOC Phone Number": "9541414425",
+    "Institution Name": "Islamic university of science and technology "
+},
+{
+    "SPOC Name": "Dr. Mahjabeen Akhter",
+    "SPOC Email": "drmahjabeenakhter5@gmail.com",
+    "SPOC Phone Number": "9622742761",
+    "Institution Name": "Govt Women College Nawakadal "
+},
+{
+    "SPOC Name": "Dr. Adil Nazki",
+    "SPOC Email": "nazkiadi@cukashmir.ac.in",
+    "SPOC Phone Number": "9858350723",
+    "Institution Name": "Central University of Kashmir "
+},
+{
+    "SPOC Name": "Dr. Ajaz Ahmad Mistree",
+    "SPOC Email": "Justmailaju@gmail.com",
+    "SPOC Phone Number": "9906699955",
+    "Institution Name": "SSM College of Engineering "
+},
+{
+    "SPOC Name": "Shahid Ahmad Wani ",
+    "SPOC Email": "Shahidwani@nitsri.ac.in",
+    "SPOC Phone Number": "+91 70063 41261",
+    "Institution Name": "GCET Safapora "
+},
+{
+    "SPOC Name": "Dr Shahnawaz Kawoosa",
+    "SPOC Email": "nawaz.kawoosa@yahoo.in",
+    "SPOC Phone Number": "+91 70062 70654",
+    "Institution Name": "Kashmir Tibia College"
+},
+{
+    "SPOC Name": "A Prof Durri Shahwar ",
+    "SPOC Email": "shahwardurri@gmail.com",
+    "SPOC Phone Number": "9796945040",
+    "Institution Name": "Vishwa Bharti Degree College "
+},
+{
+    "SPOC Name": "Irfan",
+    "SPOC Email": "apssrinagarkmr@gmail.com",
+    "SPOC Phone Number": "9858399950",
+    "Institution Name": "Army Public School"
+},
     // ... (Your SPOC data remains here, no changes)
     {
         "SPOC Name":"MR MANZOOR AHMAD DAR",
