@@ -14,6 +14,13 @@ const spocData = [
         "Institution Name":"new dream land educational institute "
     },
     {
+      "SPOC Name":" Dr.Shahnawaz Kawoosa",
+      "SPOC Email":"shahnawaz.kawoosa@yahoo.in",
+    "SPOC Phone Number":"7006270654",
+    "Institution Name":"KASHMIR TIBIA COLLEGE"
+    },
+
+    {
         "SPOC Name":"MUDASIR AHMAD WANI",
         "SPOC Email":"mudasurwani@cukashmir.ac.in",
         "SPOC Phone Number":"7006588751",
