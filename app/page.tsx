@@ -6,6 +6,7 @@ import { z } from "zod";
 
 // SPOC Data
 const spocData = [
+  // ... (SPOC data remains unchanged)
   {
     "SPOC Name": "Arshid Hussain ",
     "SPOC Email": "argharana49@gmail.com",
@@ -478,7 +479,7 @@ const spocData = [
     "SPOC Phone Number": "9469942169",
     "Institution Name": "Kashmir Harvard Educational Institute "
   }
-]
+];
 
 interface SpocEntry {
   "SPOC Name": string;
@@ -487,7 +488,7 @@ interface SpocEntry {
   "Institution Name": string;
 }
 
-// ✅ MODIFIED: Zod Schema
+// ✅ MODIFIED: Zod Schema (added pro show fields)
 const registrationSchema = z.object({
   first_name: z.string().min(1, "First name is required"),
   last_name: z.string().min(1, "Last name is required"),
@@ -512,6 +513,10 @@ const registrationSchema = z.object({
   "SPOC NAME": z.string().optional(),
   "SPOC EMAIL": z.string().optional(),
   "SPOC PHONE": z.string().optional(),
+  // ✅ NEW: Pro Show fields
+  pro_show_day1: z.boolean(),
+  pro_show_day2: z.boolean(),
+  pro_show_combo: z.boolean(),
 })
 // ✅ MODIFIED: SuperRefine for conditional SPOC validation
 .superRefine((data, ctx) => {
@@ -585,6 +590,13 @@ const participantCategories = [
   { id: "others", name: "Others (With Any govt ID)", fee: 999 }
 ];
 
+// ✅ NEW: Pro Show Fee constants
+const proShowFees = {
+  day1: 299,
+  day2: 299,
+  combo: 499,
+};
+
 export default function HomePage() {
   const router = useRouter();
   const [events, setEvents] = useState<Event[]>([]);
@@ -595,7 +607,9 @@ export default function HomePage() {
   const [totalFee, setTotalFee] = useState(0);
   const [entryFee, setEntryFee] = useState(0);
   const [eventsFee, setEventsFee] = useState(0);
+  const [proShowFee, setProShowFee] = useState(0); // ✅ NEW: State for Pro Show fee
 
+  // ✅ MODIFIED: Initial form state (added pro show fields)
   const [form, setForm] = useState<RegistrationData>({
     first_name: "",
     last_name: "",
@@ -614,12 +628,26 @@ export default function HomePage() {
     "SPOC NAME": "",
     "SPOC EMAIL": "",
     "SPOC PHONE": "",
+    // ✅ NEW: Pro Show fields
+    pro_show_day1: false,
+    pro_show_day2: false,
+    pro_show_combo: false,
   });
 
-  // ✅ MODIFIED: This useEffect handles clearing/setting SPOC data based on 
-  // NIT status OR participant category (alumni/others)
+  // ✅ MODIFIED: This useEffect now also handles auto-selecting/clearing Pro Show data
+  // based on participant type.
   useEffect(() => {
-    if (form.is_nit_student) {
+    const isNit = form.is_nit_student;
+    const category = form.participant_category;
+    const areProShowsIncluded = isNit || category === 'alumni' || category === 'others';
+
+    // Handle Pro Show auto-selection
+    // Included for NIT/Alumni/Others, reset for School/College
+    const proShowState = areProShowsIncluded
+      ? { pro_show_day1: false, pro_show_day2: false, pro_show_combo: true }
+      : { pro_show_day1: false, pro_show_day2: false, pro_show_combo: false };
+
+    if (isNit) {
       // Case 1: NIT Student
       setForm((prev) => ({
         ...prev,
@@ -627,8 +655,9 @@ export default function HomePage() {
         "SPOC NAME": "nit no spoc",
         "SPOC EMAIL": "nit@nospoc.com", // Valid dummy email
         "SPOC PHONE": "0000000000",   // Valid dummy phone
+        ...proShowState, // ✅ MODIFIED: Add pro show state
       }));
-    } else if (form.participant_category === 'alumni') {
+    } else if (category === 'alumni') {
       // Case 2: NIT Alumni
       setForm((prev) => ({
         ...prev,
@@ -636,8 +665,9 @@ export default function HomePage() {
         "SPOC NAME": "nit alumini no spoc",
         "SPOC EMAIL": "alumni@nospoc.com", // Valid dummy email
         "SPOC PHONE": "0000000000",      // Valid dummy phone
+        ...proShowState, // ✅ MODIFIED: Add pro show state
       }));
-    } else if (form.participant_category === 'others') {
+    } else if (category === 'others') {
       // Case 3: Others (Special Entry)
       setForm((prev) => ({
         ...prev,
@@ -645,20 +675,21 @@ export default function HomePage() {
         "SPOC NAME": "special entry no spoc",
         "SPOC EMAIL": "special@nospoc.com", // Valid dummy email
         "SPOC PHONE": "0000000000",       // Valid dummy phone
+        ...proShowState, // ✅ MODIFIED: Add pro show state
       }));
     } else {
       // Case 4: School or College student (not NIT)
-      // Clear fields to force selection from dropdown
-      // This runs if they switch from 'alumni' back to 'college'
+      // Clear SPOC fields and reset Pro Show fields
       setForm((prev) => ({
         ...prev,
         "INSTITUTE NAME": "",
         "SPOC NAME": "",
         "SPOC EMAIL": "",
         "SPOC PHONE": "",
+        ...proShowState, // ✅ MODIFIED: Add pro show (reset) state
       }));
     }
-  }, [form.is_nit_student, form.participant_category]); // ✅ MODIFIED: Dependencies
+  }, [form.is_nit_student, form.participant_category]); // ✅ MODIFIED: Dependencies are correct
 
 
   useEffect(() => {
@@ -729,7 +760,7 @@ export default function HomePage() {
     }
   }, [form.selected_events, events]);
 
-  // Calculate fees whenever relevant form fields change
+  // ✅ MODIFIED: Calculate fees (including Pro Show)
   useEffect(() => {
     // Get selected events
     const selectedEventObjs = events.filter((event) =>
@@ -739,7 +770,13 @@ export default function HomePage() {
     // Initialize event fees
     let newEventsFee = 0;
     let newEntryFee = 0;
+    let newProShowFee = 0; // ✅ NEW
     
+    // Check if Pro Shows are included for free
+    const areProShowsIncluded = form.is_nit_student || 
+                                form.participant_category === 'alumni' || 
+                                form.participant_category === 'others';
+
     if (form.is_nit_student) {
       // For NIT students: Charge for Workshop category AND Haunted House events
       newEventsFee = selectedEventObjs
@@ -747,6 +784,8 @@ export default function HomePage() {
         .reduce((sum, ev) => sum + ev.fee, 0);
       // NIT students don't pay entry fee
       newEntryFee = 0;
+      // Pro show is free
+      newProShowFee = 0;
     } else {
       // For non-NIT participants: Charge for event fees
       newEventsFee = selectedEventObjs.reduce((sum, ev) => sum + ev.fee, 0);
@@ -758,26 +797,49 @@ export default function HomePage() {
       if (form.attend_day1 || form.attend_day2) {
         newEntryFee = singleEntryFee;
       }
+
+      // ✅ NEW: Calculate Pro Show Fee (only if not included)
+      if (!areProShowsIncluded) {
+        if (form.pro_show_combo) {
+          newProShowFee = proShowFees.combo;
+        } else {
+          if (form.pro_show_day1) newProShowFee += proShowFees.day1;
+          if (form.pro_show_day2) newProShowFee += proShowFees.day2;
+        }
+      } else {
+        // Pro show is included in entry fee for Alumni/Others
+        newProShowFee = 0;
+      }
     }
     
     setEventsFee(newEventsFee);
     setEntryFee(newEntryFee);
-    setTotalFee(newEventsFee + newEntryFee);
-  }, [form.selected_events, form.is_nit_student, form.participant_category, form.attend_day1, form.attend_day2, events]);
+    setProShowFee(newProShowFee); // ✅ NEW
+    setTotalFee(newEventsFee + newEntryFee + newProShowFee); // ✅ MODIFIED
+
+  }, [
+    form.selected_events, 
+    form.is_nit_student, 
+    form.participant_category, 
+    form.attend_day1, 
+    form.attend_day2, 
+    events,
+    form.pro_show_day1, // ✅ NEW Dependency
+    form.pro_show_day2, // ✅ NEW Dependency
+    form.pro_show_combo // ✅ NEW Dependency
+  ]);
 
   const handleInput = (key: keyof RegistrationData, value: any) => {
     setForm((prev) => ({ ...prev, [key]: value }));
   };
 
-  // ✅ MODIFIED: SPOC Handler
+  // ✅ MODIFIED: SPOC Handler (logic remains same, just clarifying variable names)
   const handleInstituteChange = (instituteName: string) => {
-    // ✅ ADDED: Helper variable to check if fields should be locked
-    const spocFieldsLocked = form.is_nit_student || 
-                             form.participant_category === 'alumni' || 
-                             form.participant_category === 'others';
+    const isSpocLocked = form.is_nit_student || 
+                         form.participant_category === 'alumni' || 
+                         form.participant_category === 'others';
     
-    // ✅ MODIFIED: Do nothing if fields are locked
-    if (spocFieldsLocked) return;
+    if (isSpocLocked) return; // Do nothing if fields are locked
 
     const selectedSpoc = spocData.find(
       (spoc) => spoc["Institution Name"] === instituteName
@@ -803,6 +865,38 @@ export default function HomePage() {
     }
   };
 
+  // ✅ NEW: Handler for Pro Show toggles to manage exclusive selection
+  const handleProShowToggle = (key: 'pro_show_day1' | 'pro_show_day2' | 'pro_show_combo') => {
+    setForm(prev => {
+      const updatedForm = { ...prev };
+      
+      if (key === 'pro_show_combo') {
+        const isTurningOn = !prev.pro_show_combo;
+        updatedForm.pro_show_combo = isTurningOn;
+        if (isTurningOn) {
+          // If turning combo ON, turn individuals OFF
+          updatedForm.pro_show_day1 = false;
+          updatedForm.pro_show_day2 = false;
+        }
+      } else if (key === 'pro_show_day1') {
+        const isTurningOn = !prev.pro_show_day1;
+        updatedForm.pro_show_day1 = isTurningOn;
+        if (isTurningOn) {
+          // If turning individual ON, turn combo OFF
+          updatedForm.pro_show_combo = false;
+        }
+      } else if (key === 'pro_show_day2') {
+        const isTurningOn = !prev.pro_show_day2;
+        updatedForm.pro_show_day2 = isTurningOn;
+        if (isTurningOn) {
+          // If turning individual ON, turn combo OFF
+          updatedForm.pro_show_combo = false;
+        }
+      }
+      return updatedForm;
+    });
+  };
+
   const toggleEvent = (id: string | number) => {
     const idStr = String(id);
     setForm((prev) => {
@@ -822,6 +916,7 @@ export default function HomePage() {
     setShowRules(false);
   };
 
+  // ✅ MODIFIED: handleSubmit (added pro_show_fee)
   const handleSubmit = () => {
     // Validate that at least one day is selected
     if (!form.attend_day1 && !form.attend_day2) {
@@ -842,7 +937,8 @@ export default function HomePage() {
       ...result.data,
       total_fee: totalFee,
       entry_fee: entryFee,
-      events_fee: eventsFee
+      events_fee: eventsFee,
+      pro_show_fee: proShowFee // ✅ NEW: Add pro show fee to final data
     };
 
     // Log to check data before sending
@@ -869,7 +965,7 @@ export default function HomePage() {
     setCategoryFilter("All"); // Reset category filter when switching days
   };
 
-  // Display message about fee policy based on user type
+  // ✅ MODIFIED: getFeeExplanation (to include Pro Show info)
   const getFeeExplanation = () => {
     if (form.is_nit_student) {
       return (
@@ -879,17 +975,19 @@ export default function HomePage() {
             <li>Haunted House: Regular fee applies</li>
             <li>All other events: Free (no charge)</li>
             <li>No Entry Fee. SPOC details are not required.</li>
+            <li>✅ Pro Show access is included.</li> 
           </ul>
         </div>
       );
     } else {
-      // --- (MODIFIED) ---
       const oneTimeFee = participantCategories.find(cat => cat.id === form.participant_category)?.fee || 29;
       
-      // ✅ MODIFIED: Add logic for alumni/others SPOC info
       let spocMessage = "SPOC details from your institute are required."; // Default
+      let proShowMessage = "Pro Show tickets are an additional purchase."; // Default
+
       if (form.participant_category === 'alumni' || form.participant_category === 'others') {
         spocMessage = "SPOC details are not required for this category.";
+        proShowMessage = "✅ Pro Show access is included in your entry fee.";
       }
 
       return (
@@ -898,18 +996,23 @@ export default function HomePage() {
           <ul className="list-disc pl-5 space-y-1">
             <li>Event registration: Regular event fees apply</li>
             <li>Entry fee: <span className="font-medium">A one-time fee of ₹{oneTimeFee} is required if attending one or both days.</span></li>
-            <li>{spocMessage}</li> {/* ✅ MODIFIED */}
+            <li>{spocMessage}</li>
+            <li>{proShowMessage}</li> {/* ✅ MODIFIED */}
           </ul>
         </div>
       );
-      // --- (END MODIFICATION) ---
     }
   };
 
-  // ✅ ADDED: Helper variable for JSX
+  // ✅ MODIFIED: Helper variable for JSX (renamed for clarity)
   const spocFieldsDisabled = form.is_nit_student || 
                              form.participant_category === 'alumni' || 
                              form.participant_category === 'others';
+
+  // ✅ NEW: Helper variable for Pro Show disabling
+  const areProShowsIncluded = form.is_nit_student || 
+                              form.participant_category === 'alumni' || 
+                              form.participant_category === 'others';
 
   return (
     <main className="max-w-5xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
@@ -1054,10 +1157,9 @@ export default function HomePage() {
             )}
           </div>
 
-          {/* ✅ START: SPOC Information Section */}
+          {/* ✅ START: SPOC Information Section (No logic changes) */}
           <div className="sm:col-span-2 p-4 bg-gray-50 rounded-lg border border-gray-200">
             <h3 className="text-lg font-medium text-gray-800 mb-3">
-              {/* ✅ MODIFIED: Title */}
               SPOC Information (Required for School/College)
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -1158,12 +1260,64 @@ export default function HomePage() {
           )}
         </div>
 
+        {/* ✅ NEW: Pro Show Selection */}
+        <div className="mt-4 p-4 bg-purple-50 rounded-lg border border-purple-200">
+          <h3 className="text-lg font-medium text-purple-800 mb-3">
+            🎤 Pro Show Tickets
+          </h3>
+          <div className="flex flex-wrap gap-x-6 gap-y-3">
+            <label className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                checked={form.pro_show_day1}
+                disabled={areProShowsIncluded}
+                onChange={() => handleProShowToggle("pro_show_day1")}
+                className="w-5 h-5 text-purple-600 rounded focus:ring-purple-500 border-gray-300 disabled:cursor-not-allowed"
+              />
+              <span className={`font-medium ${areProShowsIncluded ? 'text-gray-500' : ''}`}>
+                Pro Show Day 1 (₹{proShowFees.day1})
+              </span>
+            </label>
+            
+            <label className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                checked={form.pro_show_day2}
+                disabled={areProShowsIncluded}
+                onChange={() => handleProShowToggle("pro_show_day2")}
+                className="w-5 h-5 text-purple-600 rounded focus:ring-purple-500 border-gray-300 disabled:cursor-not-allowed"
+              />
+              <span className={`font-medium ${areProShowsIncluded ? 'text-gray-500' : ''}`}>
+                Pro Show Day 2 (₹{proShowFees.day2})
+              </span>
+            </label>
+
+            <label className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                checked={form.pro_show_combo}
+                disabled={areProShowsIncluded}
+                onChange={() => handleProShowToggle("pro_show_combo")}
+                className="w-5 h-5 text-purple-600 rounded focus:ring-purple-500 border-gray-300 disabled:cursor-not-allowed"
+              />
+              <span className={`font-medium ${areProShowsIncluded ? 'text-gray-500' : ''}`}>
+                Pro Show Combo (₹{proShowFees.combo})
+              </span>
+            </label>
+          </div>
+          {areProShowsIncluded && (
+            <p className="text-green-600 text-sm mt-2">
+              Pro Show access is included with your registration type.
+            </p>
+          )}
+        </div>
+
         {/* Fee Explanation */}
         {getFeeExplanation()}
       </section>
 
-      {/* ... (Rest of the file: Event Selection, Rules, Payment Summary, Modal) ... */}
-      {/* ... (No changes are needed in the rest of the file) ... */}
+      {/* ... (Event Selection, Rules - no changes) ... */}
+      
 
 
       {/* Event Selection */}
@@ -1303,7 +1457,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Final Fee Summary Card */}
+      {/* ✅ MODIFIED: Final Fee Summary Card (Layout changed) */}
       <section className="mt-6 sm:mt-8 p-4 sm:p-6 bg-gradient-to-r from-indigo-600 to-purple-700 rounded-2xl shadow-lg text-white">
         <h2 className="text-xl font-semibold mb-4">Payment Summary</h2>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
@@ -1325,13 +1479,25 @@ export default function HomePage() {
               </p>
             )}
           </div>
+          {/* ✅ NEW: Pro Show Fee Block */}
           <div className="bg-white bg-opacity-90 rounded-lg p-3 text-gray-900">
-            <p className="text-sm text-gray-700">Total Fee</p>
-            <p className="text-2xl font-bold">₹{totalFee}</p>
+            <p className="text-sm text-gray-700">Pro Show Fee</p>
+            <p className="text-2xl font-bold">₹{proShowFee}</p>
+            {areProShowsIncluded && (
+              <p className="text-xs text-green-600 mt-1">
+                *Included
+              </p>
+            )}
           </div>
         </div>
 
-        <div className="text-center mt-4">
+        {/* ✅ NEW: Total Fee Block (Separated for emphasis) */}
+        <div className="text-center border-t border-white border-opacity-30 pt-4 mt-4">
+          <p className="text-lg text-indigo-100">Total Amount</p>
+          <p className="text-4xl font-extrabold">₹{totalFee}</p>
+        </div>
+
+        <div className="text-center mt-6">
           <button
             onClick={handleSubmit}
             className="bg-white text-indigo-700 text-lg px-8 py-3 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-50 font-bold"
@@ -1341,7 +1507,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Rules Modal */}
+      {/* ... (Rules Modal - no changes) ... */}
       {showRules && (
         <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg p-4 sm:p-6 max-w-2xl max-h-[80vh] overflow-y-auto w-full">
