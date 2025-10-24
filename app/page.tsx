@@ -6,6 +6,12 @@ import { z } from "zod";
 
 // SPOC Data
 const spocData = [
+  {
+    "SPOC Name": "Naureen Naseer",
+    "SPOC Email": "naureennaseer5@gmail.com",
+    "SPOC Phone Number": "8130322875",
+    "Institution Name": "Govt College for Women ,MA ROAD"
+  },
 
   {
     "SPOC Name": "Ajaz Hussain",
