@@ -6,6 +6,13 @@ import { z } from "zod";
 
 // SPOC Data
 const spocData = [
+
+  {
+    "SPOC Name": "Ajaz Hussain",
+    "SPOC Email": "ajazhusssainf1@gmail.com",
+    "SPOC Phone Number": "9622570892",
+    "Institution Name": "MSME EC Srinagar "
+  },
   {
     "SPOC Name": "Shahreen shah",
     "SPOC Email": "imaadbhat11w@gmail.com",
