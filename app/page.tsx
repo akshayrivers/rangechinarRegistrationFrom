@@ -6,7 +6,12 @@ import { z } from "zod";
 
 // SPOC Data
 const spocData = [
-  // Entries from the new data blob (60 entries)
+  {
+    "SPOC Name": "Shahreen shah",
+    "SPOC Email": "imaadbhat11w@gmail.com",
+    "SPOC Phone Number": "7780955878",
+    "Institution Name": "Dehli Public School srinagar"
+  },
   {
     "SPOC Name": "MR MANZOOR AHMAD DAR",
     "SPOC Email": "shaansahib2008@gmail.com",
