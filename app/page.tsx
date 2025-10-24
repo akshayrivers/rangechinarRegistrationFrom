@@ -6,95 +6,12 @@ import { z } from "zod";
 
 // SPOC Data
 const spocData = [
-  // ... (SPOC data remains unchanged)
-  {
-    "SPOC Name": "Arshid Hussain ",
-    "SPOC Email": "argharana49@gmail.com",
-    "SPOC Phone Number": "7006577756",
-    "Institution Name": "A R gharana"
-  },  {
-    "SPOC Name": "Huzaif Firsose ",
-    "SPOC Email": "huzaiffirdous0079@gmail.com",
-    "SPOC Phone Number": "9622151884",
-    "Institution Name": "GDC BOYS ANANTNAG"
-  },
-  {
-    "SPOC Name": "FAIZAN TARIQ",
-    "SPOC Email": "faizaaannn94@gmail.com",
-    "SPOC Phone Number": "9149403009",
-    "Institution Name": "GOVT BOYS HIGHER SECONDARY SCHOOL SOURA"
-  },
-  {
-    "SPOC Name": "Shaziya Mushtaq",
-    "SPOC Email": "mailshazia2021@gmail.com",
-    "SPOC Phone Number": "9596000768",
-    "Institution Name": "SKIMS MCH"
-  },
-  {
-    "SPOC Name": "Minha nazir",
-    "SPOC Email": "minhanazir959@gmail.com",
-    "SPOC Phone Number": "9541414425",
-    "Institution Name": "Islamic university of science and technology "
-  },
-  {
-    "SPOC Name": "Dr. Mahjabeen Akhter",
-    "SPOC Email": "drmahjabeenakhter5@gmail.com",
-    "SPOC Phone Number": "9622742761",
-    "Institution Name": "Govt Women College Nawakadal "
-  },
-  {
-    "SPOC Name": "Dr. Adil Nazki",
-    "SPOC Email": "nazkiadi@cukashmir.ac.in",
-    "SPOC Phone Number": "9858350723",
-    "Institution Name": "Central University of Kashmir "
-  },
-  {
-    "SPOC Name": "Dr. Ajaz Ahmad Mistree",
-    "SPOC Email": "Justmailaju@gmail.com",
-    "SPOC Phone Number": "9906699955",
-    "Institution Name": "SSM College of Engineering "
-  },
-  {
-    "SPOC Name": "Shahid Ahmad Wani ",
-    "SPOC Email": "Shahidwani@nitsri.ac.in",
-    "SPOC Phone Number": "+91 70063 41261",
-    "Institution Name": "GCET Safapora "
-  },
-  {
-    "SPOC Name": "Dr Shahnawaz Kawoosa",
-    "SPOC Email": "nawaz.kawoosa@yahoo.in",
-    "SPOC Phone Number": "+91 70062 70654",
-    "Institution Name": "Kashmir Tibia College"
-  },
-  {
-    "SPOC Name": "A Prof Durri Shahwar ",
-    "SPOC Email": "shahwardurri@gmail.com",
-    "SPOC Phone Number": "9796945040",
-    "Institution Name": "Vishwa Bharti Degree College "
-  },
-  {
-    "SPOC Name": "Irfan",
-    "SPOC Email": "apssrinagarkmr@gmail.com",
-    "SPOC Phone Number": "9858399950",
-    "Institution Name": "Army Public School"
-  },
-  {
-    "SPOC Name": "Rafiya Jan",
-    "SPOC Email": "rafiyajan.bhat@gmail.com",
-    "SPOC Phone Number": "7006323155",
-    "Institution Name": "University of Kashmir"
-  },
+  // Entries from the new data blob (60 entries)
   {
     "SPOC Name": "MR MANZOOR AHMAD DAR",
     "SPOC Email": "shaansahib2008@gmail.com",
     "SPOC Phone Number": "9622853815",
-    "Institution Name": "new dream land educational institute "
-  },
-  {
-    "SPOC Name": " Dr.Shahnawaz Kawoosa",
-    "SPOC Email": "nawaz.kawoosa@yahoo.in",
-    "SPOC Phone Number": "7006270654",
-    "Institution Name": "KASHMIR TIBIA COLLEGE"
+    "Institution Name": "new dream land educational institute"
   },
   {
     "SPOC Name": "MUDASIR AHMAD WANI",
@@ -124,7 +41,7 @@ const spocData = [
     "SPOC Name": "Shah Faisal",
     "SPOC Email": "Sfaisal0202@gmail.com",
     "SPOC Phone Number": "9149878496",
-    "Institution Name": "Al Noor Para Medical & Nursing Institute. "
+    "Institution Name": "Al Noor Para Medical & Nursing Institute."
   },
   {
     "SPOC Name": "Dr.Khursheed Ahmad",
@@ -142,13 +59,13 @@ const spocData = [
     "SPOC Name": "MUDASIR MANZOOR",
     "SPOC Email": "mudasir465@gmail.com",
     "SPOC Phone Number": "7006658003",
-    "Institution Name": "GOVT BHSS CHARAR I SHARIEF "
+    "Institution Name": "GOVT BHSS CHARAR I SHARIEF"
   },
   {
-    "SPOC Name": "Junaid hussain yetoo ",
+    "SPOC Name": "Junaid hussain yetoo",
     "SPOC Email": "Yetoojunaid@gmail.com",
     "SPOC Phone Number": "9596185358",
-    "Institution Name": "Government High school panzath "
+    "Institution Name": "Government High school panzath"
   },
   {
     "SPOC Name": "Dr Meer Umer",
@@ -160,13 +77,13 @@ const spocData = [
     "SPOC Name": "Dr. Farhat Hassan",
     "SPOC Email": "farhathassanwani52652@gmail.com",
     "SPOC Phone Number": "9906874251",
-    "Institution Name": "Srinagar womens college srinagar Zakura "
+    "Institution Name": "Srinagar womens college srinagar Zakura"
   },
   {
-    "SPOC Name": "Dr Farhana Mehraj Allai ",
+    "SPOC Name": "Dr Farhana Mehraj Allai (SPOC 1)",
     "SPOC Email": "faruallai@gmail.com",
     "SPOC Phone Number": "7006137658",
-    "Institution Name": "Islamic University of Science and Technology "
+    "Institution Name": "Islamic University of Science and Technology"
   },
   {
     "SPOC Name": "Dr Bashir Ahmad",
@@ -187,13 +104,13 @@ const spocData = [
     "Institution Name": "NIFT Srinagar"
   },
   {
-    "SPOC Name": "Zahid ",
+    "SPOC Name": "Zahid",
     "SPOC Email": "Zahidbhatsr@gmail.com",
     "SPOC Phone Number": "9018555737",
-    "Institution Name": "Lakecity college "
+    "Institution Name": "Lakecity college"
   },
   {
-    "SPOC Name": "Javaid Ayub sheikh ",
+    "SPOC Name": "Javaid Ayub sheikh",
     "SPOC Email": "sunatjavaidps@gmail.com",
     "SPOC Phone Number": "9596163577",
     "Institution Name": "GDC Khansahib"
@@ -211,100 +128,40 @@ const spocData = [
     "Institution Name": "GCW MA Road"
   },
   {
-    "SPOC Name": "Taqwa Mukhtar ",
-    "SPOC Email": "babataqwa89@gmail.com",
-    "SPOC Phone Number": "8493033651",
-    "Institution Name": "Islamic University of Science and Technology "
-  },
-  {
-    "SPOC Name": "Tooba Hilal Wani",
+    "SPOC Name": "Tooba Hilal Wani (SPOC 2)",
     "SPOC Email": "Toobahilal356@gmail.com",
     "SPOC Phone Number": "7889725023",
     "Institution Name": "Islamic University of science and technology"
   },
   {
-    "SPOC Name": "Ishfaq Maqbool ",
+    "SPOC Name": "Ishfaq Maqbool",
     "SPOC Email": "ishfaqmaqbool14@gmail.com",
     "SPOC Phone Number": "7889646497",
-    "Institution Name": "City School Anantnag "
+    "Institution Name": "City School Anantnag"
   },
   {
-    "SPOC Name": "Farhana Allai",
-    "SPOC Email": "Faruallai@gmail.com",
-    "SPOC Phone Number": "+91 70061 37658",
-    "Institution Name": "IUST, Awantipora"
-  },
-  {
-    "SPOC Name": "Farhana illahi",
-    "SPOC Email": "faruallai@gmail.com",
-    "SPOC Phone Number": "7006137658",
-    "Institution Name": "Islamic university of science and technology "
-  },
-  {
-    "SPOC Name": "Dr. Mohmad Azhar",
-    "SPOC Email": "mohmadazhar286@gmail.com",
-    "SPOC Phone Number": "9149539973",
-    "Institution Name": "Islamic University of Science and Technology "
-  },
-  {
-    "SPOC Name": "Shahid ashraf sofi ",
+    "SPOC Name": "Shahid ashraf sofi (SPOC 1)",
     "SPOC Email": "shahidashrf10@gmail.com",
     "SPOC Phone Number": "6006919076",
-    "Institution Name": "Ihm srinagar "
+    "Institution Name": "Ihm srinagar"
   },
   {
-    "SPOC Name": "Furqan bin subzar",
-    "SPOC Email": "furkansoub07@gmail.com",
-    "SPOC Phone Number": "6006347980",
-    "Institution Name": "IHM srinagar "
-  },
-  {
-    "SPOC Name": "Ibrahim feroz ",
-    "SPOC Email": "bhatibrahim220@gmail.com",
-    "SPOC Phone Number": "7889786250",
-    "Institution Name": "Institute of hotel management "
-  },
-  {
-    "SPOC Name": "Adnan ",
-    "SPOC Email": "adnanjavaid040@gmail.com",
-    "SPOC Phone Number": "7006198809",
-    "Institution Name": "Ihm srinagar "
-  },
-  {
-    "SPOC Name": "Shah kashif hussain ",
-    "SPOC Email": "kashifhussain985695666@gmail.com",
-    "SPOC Phone Number": "9797488028",
-    "Institution Name": "IHM SRINAGAR"
-  },
-  {
-    "SPOC Name": "Prof. S. A. Gangoo ",
+    "SPOC Name": "Prof. S. A. Gangoo",
     "SPOC Email": "dsw@skuastkasmir.ac.in",
     "SPOC Phone Number": "9419076319",
-    "Institution Name": "Shere kashmir university of agricultural sciences and technology of Kashmir "
+    "Institution Name": "Shere kashmir university of agricultural sciences and technology of Kashmir"
   },
   {
-    "SPOC Name": "Nazaliya noor",
-    "SPOC Email": "nazaliyanoor3@gmail.com",
-    "SPOC Phone Number": "9103114755",
-    "Institution Name": "Ihm Srinagar "
-  },
-  {
-    "SPOC Name": "Nida khursheed ",
+    "SPOC Name": "Nida khursheed (SPOC 2)",
     "SPOC Email": "nidakhursheeddar@gmail.com",
     "SPOC Phone Number": "9103113133",
-    "Institution Name": "IHM RAJBAGH SRINAGAR "
+    "Institution Name": "IHM RAJBAGH SRINAGAR"
   },
   {
-    "SPOC Name": "Mir Khusrau ",
+    "SPOC Name": "Mir Khusrau",
     "SPOC Email": "mirkhusrau5@gmail.com",
     "SPOC Phone Number": "7006089568",
-    "Institution Name": "SP College, Srinagar "
-  },
-  {
-    "SPOC Name": "MEHROOMA AKBAR ",
-    "SPOC Email": "darmehrudarmehru@gmail.com",
-    "SPOC Phone Number": "9149552613 ",
-    "Institution Name": "Islamia college of Science and Commerce "
+    "Institution Name": "SP College, Srinagar"
   },
   {
     "SPOC Name": "Dr Nusrat Nabi",
@@ -314,18 +171,18 @@ const spocData = [
   },
   {
     "SPOC Name": "MAGRAY AJAZ AHMAD",
-    "SPOC Email": "principal@gdcboysang.ac.in ",
+    "SPOC Email": "principal@gdcboysang.ac.in",
     "SPOC Phone Number": "9596441959",
     "Institution Name": "SHMM GDC ANANTNAG"
   },
   {
-    "SPOC Name": "Bilal Ahmed Malik ",
+    "SPOC Name": "Bilal Ahmed Malik (SPOC 1)",
     "SPOC Email": "Bilalmalik61@gmail.com",
     "SPOC Phone Number": "8803914713",
-    "Institution Name": "Crescent public School naseembagh srinagar "
+    "Institution Name": "Crescent public School naseembagh srinagar"
   },
   {
-    "SPOC Name": "Junaid-ul-Shabar Khan ",
+    "SPOC Name": "Junaid-ul-Shabar Khan (SPOC 2)",
     "SPOC Email": "hydereqarar@gmail.com",
     "SPOC Phone Number": "7006590062",
     "Institution Name": "Crescent Public School"
@@ -334,19 +191,7 @@ const spocData = [
     "SPOC Name": "Fiza Qureashi",
     "SPOC Email": "qureshifiza7@gmail.com",
     "SPOC Phone Number": "7006503313",
-    "Institution Name": "Green Valley Educational Institute "
-  },
-  {
-    "SPOC Name": "Saiqa ",
-    "SPOC Email": "saikabhatt905@gmail.com",
-    "SPOC Phone Number": "9149466626",
-    "Institution Name": "islamia college of science and commerce srinagar"
-  },
-  {
-    "SPOC Name": "Sahban Khan",
-    "SPOC Email": "sahban354@gmail.com",
-    "SPOC Phone Number": "9797807239",
-    "Institution Name": "Institute of Hotel Management Srinagar"
+    "Institution Name": "Green Valley Educational Institute"
   },
   {
     "SPOC Name": "Mrs Afshana Bashir",
@@ -355,25 +200,67 @@ const spocData = [
     "Institution Name": "Kashmir Law College"
   },
   {
-    "SPOC Name": "Syed Akeela Gillani ",
+    "SPOC Name": "Syed Akeela Gillani",
     "SPOC Email": "syedakeela786@gmail.com",
     "SPOC Phone Number": "7006751169",
-    "Institution Name": "Ingenious School "
+    "Institution Name": "Ingenious School"
   },
   {
-    "SPOC Name": "Dr.Mahjabeen Akhter",
-    "SPOC Email": "drmahjabeenakh5@gmail.com",
+    "SPOC Name": "Dr. Mahjabeen Akhter",
+    "SPOC Email": "drmahjabeenakhter5@gmail.com",
     "SPOC Phone Number": "9622742761",
-    "Institution Name": "Govt College for women Nawakadal"
+    "Institution Name": "Govt Women College Nawakadal"
   },
   {
     "SPOC Name": "Anam Tariq",
-    "SPOC Email": "Casetcollege2001@gmail.com",
+    "SPOC Email": "casetcollege2001@gmail.com",
     "SPOC Phone Number": "7006477954",
     "Institution Name": "CASET college of Computer Science"
   },
   {
-    "SPOC Name": "Dr. Syed Mutahar Aaqib",
+    "SPOC Name": "Dr. Adil Nazki",
+    "SPOC Email": "nazkiadi@cukashmir.ac.in",
+    "SPOC Phone Number": "9858350723",
+    "Institution Name": "Central University of Kashmir"
+  },
+  {
+    "SPOC Name": "Dr. Ajaz Ahmad Mistree",
+    "SPOC Email": "Justmailaju@gmail.com",
+    "SPOC Phone Number": "9906699955",
+    "Institution Name": "SSM College of Engineering"
+  },
+  {
+    "SPOC Name": "Shahid Ahmad Wani",
+    "SPOC Email": "Shahidwani@nitsri.ac.in",
+    "SPOC Phone Number": "7006341261",
+    "Institution Name": "GCET Safapora"
+  },
+  {
+    "SPOC Name": "Dr Shahnawaz Kawoosa",
+    "SPOC Email": "nawaz.kawoosa@yahoo.in",
+    "SPOC Phone Number": "7006270654",
+    "Institution Name": "Kashmir Tibia College"
+  },
+  {
+    "SPOC Name": "A Prof Durri Shahwar",
+    "SPOC Email": "shahwardurri@gmail.com",
+    "SPOC Phone Number": "9796945040",
+    "Institution Name": "Vishwa Bharti Degree College"
+  },
+  {
+    "SPOC Name": "Irfan",
+    "SPOC Email": "apssrinagarkmr@gmail.com",
+    "SPOC Phone Number": "9858399950",
+    "Institution Name": "Army Public School"
+  },
+  {
+    "SPOC Name": "Rafiya Jan",
+    "SPOC Email": "rafiyajan.bhat@gmail.com",
+    "SPOC Phone Number": "7006323155",
+    "Institution Name": "University of Kashmir"
+  },
+  {
+    "SPOC Name": "Dr. Syed Mutahar Aaqib (SPOC 1)",
     "SPOC Email": "dr.syedmutahar@gmail.com",
     "SPOC Phone Number": "9419969143",
     "Institution Name": "Government Degree College (Autonomous), Baramulla"
@@ -382,72 +269,25 @@ const spocData = [
     "SPOC Name": "Madiha msuhtaq",
     "SPOC Email": "Madihamushtaq65@gmail.com",
     "SPOC Phone Number": "9682548759",
-    "Institution Name": "Islamic college of science and commerce "
+    "Institution Name": "Islamic college of science and commerce"
   },
   {
-    "SPOC Name": "Mehrooma Akbar ",
-    "SPOC Email": "darmehrudarmehru@gmail.com",
-    "SPOC Phone Number": "9149552613",
-    "Institution Name": "Islamia College of Science and Commerce "
-  },
-  {
-    "SPOC Name": "Faris ",
+    "SPOC Name": "Faris (SPOC 1)",
     "SPOC Email": "Farishaider93@gmail.com",
     "SPOC Phone Number": "7051009486",
-    "Institution Name": "Goverment boys higher secondary soura srinagar "
+    "Institution Name": "Goverment boys higher secondary soura srinagar"
   },
   {
-    "SPOC Name": "Dr.Abina Habib",
-    "SPOC Email": "abinahabib@gmail.com",
-    "SPOC Phone Number": "9797009106",
-    "Institution Name": "GCW MA Road"
-  },
-  {
-    "SPOC Name": "Zeyan Farooq",
+    "SPOC Name": "Zeyan Farooq (SPOC 2)",
     "SPOC Email": "bhatzeyan7051@gmail.com",
     "SPOC Phone Number": "7051180536",
     "Institution Name": "Boys higher secondary school soura"
   },
   {
-    "SPOC Name": "Adnan majeed ",
-    "SPOC Email": "aa6851567@gmail.com",
-    "SPOC Phone Number": "7006816841",
-    "Institution Name": "Govt.boys higher secondary school soura"
-  },{
-    "SPOC Name": "Anam Tariq",
-    "SPOC Email": "casetcollege2001@gmail.com",
-    "SPOC Phone Number": "7006477954",
-    "Institution Name": "CASET college of Computer Science "
-  },
-  {
-    "SPOC Name": "Rahil rashid ",
-    "SPOC Email": "bhatrahil302@gmail.com",
-    "SPOC Phone Number": "6006939640",
-    "Institution Name": " Boys Higher Secondary, Soura"
-  },
-  {
-    "SPOC Name": "Motaz",
-    "SPOC Email": "moatazayoub@gamil.com",
-    "SPOC Phone Number": "6005363304",
-    "Institution Name": "Govt boys higher secondary school soura"
-  },
-  {
-    "SPOC Name": "Bushra",
-    "SPOC Email": "bushrashafi002@gmail.com",
-    "SPOC Phone Number": "9103705094",
-    "Institution Name": "Islamia college  of science and commerce "
-  },
-  {
-    "SPOC Name": "Aiman",
-    "SPOC Email": "Qadiraiman98@gmail.com",
-    "SPOC Phone Number": "8899449326",
-    "Institution Name": "Iust"
-  },
-  {
-    "SPOC Name": "Azhar Shafat",
-    "SPOC Email": "azharshafat47@gmail.com",
-    "SPOC Phone Number": "9596209236",
-    "Institution Name": "Govt boys higher secondary school soura"
+    "SPOC Name": "Shaziya Mushtaq",
+    "SPOC Email": "mailshazia2021@gmail.com",
+    "SPOC Phone Number": "9596000768",
+    "Institution Name": "SKIMS MCH"
   },
   {
     "SPOC Name": "Syed Shuja Razvi",
@@ -456,28 +296,90 @@ const spocData = [
     "Institution Name": "Alasma Educational Institute Budgam"
   },
   {
-    "SPOC Name": "Rutba jan ",
-    "SPOC Email": "rutbas417@gmail.com",
-    "SPOC Phone Number": "9796172848",
-    "Institution Name": "Islamia college of science and commerce "
-  },
-  {
-    "SPOC Name": "Firas",
-    "SPOC Email": "kuthoofiras@gmail.com",
-    "SPOC Phone Number": "9906374848",
-    "Institution Name": "Institute of Hotel Management"
-  },
-  {
-    "SPOC Name": "Mehvish Manzoor ",
-    "SPOC Email": "syedamehvish978@gmail.com",
-    "SPOC Phone Number": "6006490354",
-    "Institution Name": "Islamia College of science and commerce "
-  },
-  {
-    "SPOC Name": "Nasreen ",
+    "SPOC Name": "Nasreen",
     "SPOC Email": "nasreena.nazir@kashmirharvard.org",
     "SPOC Phone Number": "9469942169",
-    "Institution Name": "Kashmir Harvard Educational Institute "
+    "Institution Name": "Kashmir Harvard Educational Institute"
+  },
+  {
+    "SPOC Name": "Arshid Hussain",
+    "SPOC Email": "argharana49@gmail.com",
+    "SPOC Phone Number": "7006577756",
+    "Institution Name": "A R gharana"
+  },
+  {
+    "SPOC Name": "Huzaif Firsose",
+    "SPOC Email": "huzaiffirdous0079@gmail.com",
+    "SPOC Phone Number": "9622151884",
+    "Institution Name": "GDC BOYS ANANTNAG"
+  },
+  {
+    "SPOC Name": "Tabeeb",
+    "SPOC Email": "tabeebmushtaq1@gmail.com",
+    "SPOC Phone Number": "6006517278",
+    "Institution Name": "AAAMD BEMINA COLLEGE (GDC)"
+  },
+  {
+    "SPOC Name": "Ajaz hussain",
+    "SPOC Email": "ajazhusssainf1@gmail.com",
+    "SPOC Phone Number": "9622570892",
+    "Institution Name": "Ministry of Msme ppdc ec srinagar"
+  },
+  {
+    "SPOC Name": "Idrees Khan",
+    "SPOC Email": "Khanidrees08@gmail.com",
+    "SPOC Phone Number": "9419100619",
+    "Institution Name": "Shemstar International School"
+  },
+  {
+    "SPOC Name": "Prof Uheeda Shah (SPOC 1)",
+    "SPOC Email": "Shahuheedah@gmail.com",
+    "SPOC Phone Number": "9906539299",
+    "Institution Name": "Islamia College of Science and Commerce"
+  },
+  {
+    "SPOC Name": "Bhat Rehana Bashir (SPOC 2)",
+    "SPOC Email": "bhat.rehana5259@gmail.com",
+    "SPOC Phone Number": "9906722468",
+    "Institution Name": "Islamia College of Science and Commerce"
+  },
+  {
+    "SPOC Name": "Ishfaq Ul Rahman (SPOC 2)",
+    "SPOC Email": "ishfaqrehman138@gmail.com",
+    "SPOC Phone Number": "7006081488",
+    "Institution Name": "GDC BARAMULLA"
+  },
+  {
+    "SPOC Name": "Sahil Nabi Bhat",
+    "SPOC Email": "2025127363.sahil@ug.sharda.ac.in",
+    "SPOC Phone Number": "9541695224",
+    "Institution Name": "Sharda University"
+  },
+  {
+    "SPOC Name": "Saqiba Altaf",
+    "SPOC Email": "saqibaaltaf759@gmail.com",
+    "SPOC Phone Number": "6006984822",
+    "Institution Name": "Amar Singh College"
+  },
+  {
+    "SPOC Name": "Mr Amin",
+    "SPOC Email": "Khosaamin@gmail.com",
+    "SPOC Phone Number": "9149442528",
+    "Institution Name": "PRESENTATION CONVENT HIGHER SECONDRY SC"
+  },
+  
+  // "Extra Entries" from spocData (2 entries)
+  {
+    "SPOC Name": "FAIZAN TARIQ",
+    "SPOC Email": "faizaaannn94@gmail.com",
+    "SPOC Phone Number": "9149403009",
+    "Institution Name": "GOVT BOYS HIGHER SECONDARY SCHOOL SOURA"
+  },
+  {
+    "SPOC Name": "Minha nazir",
+    "SPOC Email": "minhanazir959@gmail.com",
+    "SPOC Phone Number": "9541414425",
+    "Institution Name": "Islamic university of science and technology "
   }
 ];
 
