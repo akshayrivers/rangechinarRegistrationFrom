@@ -1535,7 +1535,7 @@ export default function HomePage() {
       )}
     </main>
   );
-
+}
 // export default function Page() {
 //   return <div style={{ height: '100px' }}>Registrations are  closed , Thank you....</div>
 // }
