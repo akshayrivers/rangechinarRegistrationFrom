@@ -398,6 +398,11 @@ const spocData = [
     "SPOC Email": "minhanazir959@gmail.com",
     "SPOC Phone Number": "9541414425",
     "Institution Name": "Islamic university of science and technology "
+  },{
+    "SPOC Name":"Iqbal Memorial Institute , Srinagar",
+    "SPOC Email":"numa12ir@gmail.com",
+    "SPOC Phone Number":"9103560655",
+    "Institution Name":"Iqbal Memorial Institute , Srinagar"
   }
 ];
 
